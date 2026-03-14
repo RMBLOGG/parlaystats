@@ -1,1 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ParlayStats — Football Predictor</title>
+<meta name="theme-color" content="#0a0b10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:      #0a0b10;
+  --bg2:     #0e0f16;
+  --surface: #13151f;
+  --card:    #181a26;
+  --card2:   #1e2030;
+  --border:  rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.1);
+  --accent:  #6c63ff;
+  --accent2: #8b85ff;
+  --green:   #10d97e;
+  --amber:   #fbbf24;
+  --red:     #f87171;
+  --text:    #eef0f8;
+  --text2:   #7880a0;
+  --text3:   #3d4260;
+}
+html { font-size:15px; }
+body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
 
+@keyframes spin   { to{transform:rotate(360deg)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes glow   { 0%,100%{opacity:0.5} 50%{opacity:1} }
+@keyframes slideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ── HEADER ── */
+.header {
+  position:sticky; top:0; z-index:100;
+  background:rgba(10,11,16,0.92); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 16px; height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-mark { width:34px; height:34px; background:var(--accent); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; box-shadow:0 4px 16px rgba(108,99,255,0.4); }
+.logo-name { font-family:'Plus Jakarta Sans',sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.2px; }
+.logo-name span { color:var(--accent); }
+.header-right { display:flex; align-items:center; gap:8px; }
+.badge-pure { font-size:10px; font-weight:600; color:var(--accent); border:1px solid rgba(108,99,255,0.3); border-radius:20px; padding:3px 10px; background:rgba(108,99,255,0.08); }
+
+/* ── HERO ── */
+.hero { padding:24px 16px 20px; position:relative; overflow:hidden; }
+.hero::after { content:''; position:absolute; top:-80px; right:-60px; width:280px; height:280px; background:radial-gradient(circle, rgba(108,99,255,0.1) 0%, transparent 65%); pointer-events:none; border-radius:50%; }
+.hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:8px; opacity:0.9; }
+.hero-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:24px; font-weight:800; line-height:1.2; letter-spacing:-0.3px; margin-bottom:8px; }
+.hero-title em { color:var(--accent); font-style:normal; }
+.hero-desc { font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:14px; max-width:320px; }
+.warning-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2); border-radius:20px; padding:6px 12px; font-size:11px; color:var(--amber); font-weight:500; }
+
+/* ── FILTER BAR ── */
+.filter-bar { padding:12px 16px; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:10px; }
+.filter-row { display:flex; gap:8px; }
+.filter-group { flex:1; display:flex; flex-direction:column; gap:4px; }
+.filter-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); }
+.filter-select { background:var(--card); border:1.5px solid var(--border2); border-radius:10px; padding:9px 12px; color:var(--text); font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:500; outline:none; cursor:pointer; appearance:none; width:100%; transition:border-color 0.15s; }
+.filter-select:focus { border-color:var(--accent); }
+.filter-date { background:var(--card); border:1.5px solid var(--border2); border-radius:10px; padding:9px 12px; color:var(--text); font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; width:100%; color-scheme:dark; transition:border-color 0.15s; }
+.filter-date:focus { border-color:var(--accent); }
+.load-btn {
+  width:100%; background:var(--accent); color:#fff; border:none;
+  border-radius:12px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:14px; font-weight:700; letter-spacing:0.5px; cursor:pointer;
+  transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 4px 20px rgba(108,99,255,0.3);
+}
+.load-btn:hover { background:#7c74ff; transform:translateY(-1px); box-shadow:0 6px 24px rgba(108,99,255,0.4); }
+.load-btn:active { transform:translateY(0); }
+
+/* ── MATCH LIST ── */
+.main { padding-bottom:160px; }
+
+.list-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 8px; }
+.list-head-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; color:var(--text2); letter-spacing:0.5px; }
+.list-head-count { background:var(--card2); color:var(--text3); font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+
+.comp-divider { display:flex; align-items:center; gap:8px; padding:8px 16px 6px; background:var(--surface); border-top:1px solid var(--border); }
+.comp-emblem { width:18px; height:18px; object-fit:contain; }
+.comp-divider-name { font-size:11px; font-weight:600; color:var(--text2); letter-spacing:0.5px; text-transform:uppercase; }
+
+/* ── MATCH CARD ── */
+.match-card {
+  margin:6px 12px; border-radius:14px;
+  background:var(--surface); border:1.5px solid var(--border);
+  cursor:pointer; transition:all 0.15s;
+  animation:fadeUp 0.25s ease both;
+  overflow:hidden;
+}
+.match-card:hover { border-color:var(--border2); background:var(--card); transform:translateY(-1px); }
+.match-card.selected { border-color:var(--accent); background:rgba(108,99,255,0.06); }
+.match-card-inner { padding:12px 14px; display:flex; flex-direction:column; gap:10px; }
+
+/* Teams row */
+.teams-row { display:flex; align-items:center; gap:0; }
+.team-block { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 0; }
+.team-crest { width:40px; height:40px; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
+.team-crest-ph { width:40px; height:40px; background:var(--card2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--text3); }
+.team-name { font-size:12px; font-weight:600; text-align:center; line-height:1.3; color:var(--text); }
+.team-name-short { display:none; }
+
+.vs-block { display:flex; flex-direction:column; align-items:center; gap:4px; padding:0 10px; flex-shrink:0; }
+.vs-time { font-family:'DM Mono',sans-serif; font-size:13px; font-weight:500; color:var(--accent); }
+.vs-label { font-size:10px; font-weight:600; color:var(--text3); letter-spacing:1px; }
+
+/* Match footer */
+.match-footer { display:flex; align-items:center; justify-content:space-between; }
+.match-check { width:22px; height:22px; border-radius:6px; border:2px solid var(--border2); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+.match-card.selected .match-check { background:var(--accent); border-color:var(--accent); }
+.check-svg { display:none; }
+.match-card.selected .check-svg { display:block; }
+
+.market-wrap { flex:1; padding:0 10px; }
+.market-sel {
+  width:100%; background:var(--card2); border:1.5px solid var(--border2);
+  border-radius:8px; padding:6px 10px; color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600;
+  outline:none; cursor:pointer; appearance:none; text-align:center;
+  transition:border-color 0.15s;
+}
+.market-sel:focus { border-color:var(--accent); }
+.match-card.selected .market-sel { border-color:rgba(108,99,255,0.4); background:rgba(108,99,255,0.08); color:var(--accent2); }
+
+.selected-badge { font-size:10px; font-weight:700; color:var(--accent); background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.25); border-radius:6px; padding:3px 8px; white-space:nowrap; display:none; }
+.match-card.selected .selected-badge { display:block; }
+
+/* ── BUILDER ── */
+.builder {
+  position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:var(--surface); border-top:1px solid var(--border);
+  padding:14px 16px 20px;
+  display:none;
+  box-shadow:0 -12px 40px rgba(0,0,0,0.5);
+  animation:slideUp 0.3s ease;
+}
+.builder.show { display:block; }
+.builder-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.builder-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.builder-dot { width:8px; height:8px; background:var(--accent); border-radius:50%; animation:pulse 1.5s ease infinite; }
+.builder-sub { font-size:12px; color:var(--text2); }
+.builder-picks { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; min-height:0; }
+.pick-chip { display:flex; align-items:center; gap:5px; background:var(--card2); border:1px solid var(--border2); border-radius:20px; padding:4px 10px 4px 6px; font-size:11px; font-weight:600; max-width:170px; }
+.pick-chip img { width:16px; height:16px; object-fit:contain; }
+.pick-chip span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pick-chip-mkt { color:var(--accent); flex-shrink:0; font-size:10px; }
+.builder-actions { display:flex; gap:8px; }
+.btn-clear { background:none; border:1.5px solid var(--border2); border-radius:10px; padding:11px 16px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; color:var(--text2); transition:all 0.15s; }
+.btn-clear:hover { border-color:var(--red); color:var(--red); }
+.btn-analyze {
+  flex:1; background:var(--accent); color:#fff; border:none;
+  border-radius:10px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:14px; font-weight:700; cursor:pointer;
+  transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:0 4px 16px rgba(108,99,255,0.35);
+}
+.btn-analyze:hover { background:#7c74ff; }
+.btn-analyze:disabled { background:var(--card2); color:var(--text3); cursor:not-allowed; box-shadow:none; }
+
+/* ── RESULT ── */
+.result-page { padding:16px; animation:fadeUp 0.3s ease; }
+
+/* Overall confidence hero */
+.conf-hero { background:var(--surface); border:1.5px solid var(--border); border-radius:18px; padding:20px 16px; margin-bottom:14px; text-align:center; position:relative; overflow:hidden; }
+.conf-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.12) 0%, transparent 60%); pointer-events:none; }
+.conf-label { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.conf-number { font-family:'Plus Jakarta Sans',sans-serif; font-size:72px; font-weight:800; line-height:1; margin-bottom:4px; }
+.conf-number.high { color:var(--green); }
+.conf-number.mid  { color:var(--amber); }
+.conf-number.low  { color:var(--red); }
+.conf-sub { font-size:13px; color:var(--text2); margin-bottom:14px; }
+.conf-bar-bg { height:8px; background:var(--card2); border-radius:4px; overflow:hidden; margin-bottom:12px; }
+.conf-bar-fill { height:100%; border-radius:4px; transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+.conf-tags { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.conf-tag { font-size:11px; font-weight:600; border-radius:20px; padding:4px 14px; }
+.tag-g { background:rgba(16,217,126,0.1); color:var(--green); border:1px solid rgba(16,217,126,0.25); }
+.tag-a { background:rgba(251,191,36,0.1); color:var(--amber); border:1px solid rgba(251,191,36,0.25); }
+.tag-r { background:rgba(248,113,113,0.1); color:var(--red); border:1px solid rgba(248,113,113,0.25); }
+.tag-p { background:rgba(108,99,255,0.1); color:var(--accent2); border:1px solid rgba(108,99,255,0.25); }
+
+/* Prediction cards */
+.pred-cards { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
+
+.pred-card { background:var(--surface); border:1.5px solid var(--border); border-radius:16px; overflow:hidden; animation:fadeUp 0.3s ease both; }
+
+.pred-card-header { padding:12px 14px; background:var(--card); display:flex; align-items:center; gap:10px; }
+.pred-home-crest, .pred-away-crest { width:28px; height:28px; object-fit:contain; flex-shrink:0; }
+.pred-vs-divider { font-size:11px; color:var(--text3); font-weight:600; flex-shrink:0; }
+.pred-match-name { flex:1; font-size:13px; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pred-mkt { font-size:10px; font-weight:700; color:var(--accent2); background:rgba(108,99,255,0.12); border:1px solid rgba(108,99,255,0.2); border-radius:6px; padding:3px 8px; white-space:nowrap; flex-shrink:0; }
+
+.pred-body { padding:14px; }
+
+/* Pick result */
+.pick-result { display:flex; align-items:center; justify-content:space-between; background:var(--card); border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+.pick-result-left { display:flex; align-items:center; gap:8px; }
+.pick-checkmark { width:28px; height:28px; background:rgba(16,217,126,0.15); border-radius:8px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(16,217,126,0.3); flex-shrink:0; }
+.pick-text { font-family:'Plus Jakarta Sans',sans-serif; font-size:15px; font-weight:700; }
+.pick-conf-num { font-family:'DM Mono',sans-serif; font-size:20px; font-weight:500; }
+.pick-conf-num.high { color:var(--green); }
+.pick-conf-num.mid  { color:var(--amber); }
+.pick-conf-num.low  { color:var(--red); }
+.pick-conf-bar { height:4px; background:var(--card2); border-radius:2px; overflow:hidden; margin-top:6px; }
+.pick-conf-fill { height:100%; border-radius:2px; }
+
+/* Form row */
+.form-section { margin-bottom:12px; }
+.section-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.form-teams { display:flex; flex-direction:column; gap:5px; }
+.form-team-row { display:flex; align-items:center; gap:8px; }
+.form-team-crest { width:18px; height:18px; object-fit:contain; flex-shrink:0; }
+.form-team-name { font-size:11px; font-weight:600; color:var(--text2); width:80px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.form-dots { display:flex; gap:3px; }
+.fd { width:22px; height:22px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; font-family:'DM Mono',sans-serif; flex-shrink:0; }
+.fd.W { background:rgba(16,217,126,0.15); color:var(--green); border:1px solid rgba(16,217,126,0.3); }
+.fd.D { background:rgba(251,191,36,0.12); color:var(--amber); border:1px solid rgba(251,191,36,0.25); }
+.fd.L { background:rgba(248,113,113,0.12); color:var(--red); border:1px solid rgba(248,113,113,0.25); }
+.fd.Q { background:var(--card2); color:var(--text3); border:1px solid var(--border); }
+.form-pos { font-size:11px; font-family:'DM Mono',sans-serif; color:var(--text3); margin-left:4px; }
+
+/* Outcome probs */
+.outcome-section { margin-bottom:12px; }
+.outcome-bars { display:flex; flex-direction:column; gap:5px; }
+.outcome-bar-row { display:flex; align-items:center; gap:8px; }
+.outcome-bar-label { font-size:11px; font-weight:600; color:var(--text2); width:68px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.outcome-bar-track { flex:1; height:8px; background:var(--card2); border-radius:4px; overflow:hidden; }
+.outcome-bar-fill { height:100%; border-radius:4px; transition:width 1s ease; }
+.outcome-bar-pct { font-size:11px; font-family:'DM Mono',sans-serif; font-weight:500; color:var(--text2); width:32px; text-align:right; flex-shrink:0; }
+
+/* Goal probs */
+.goal-section { margin-bottom:12px; }
+.goal-lines { display:flex; gap:5px; }
+.goal-cell { flex:1; background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:8px 4px; text-align:center; transition:all 0.15s; }
+.goal-cell.active { background:rgba(108,99,255,0.08); border-color:rgba(108,99,255,0.35); }
+.goal-line-label { font-size:10px; font-weight:700; color:var(--text3); margin-bottom:4px; }
+.goal-over { font-family:'DM Mono',sans-serif; font-size:12px; font-weight:500; color:var(--green); }
+.goal-under { font-family:'DM Mono',sans-serif; font-size:12px; font-weight:500; color:var(--red); }
+
+/* Top scorelines */
+.scores-section { margin-bottom:12px; }
+.scores-chips { display:flex; gap:5px; flex-wrap:wrap; }
+.score-chip { background:var(--card); border:1.5px solid var(--border); border-radius:8px; padding:6px 10px; text-align:center; min-width:52px; }
+.score-chip.top-score { background:rgba(108,99,255,0.08); border-color:rgba(108,99,255,0.3); }
+.score-chip-val { font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:700; color:var(--text); }
+.score-chip.top-score .score-chip-val { color:var(--accent2); }
+.score-chip-pct { font-size:9px; color:var(--text3); margin-top:2px; }
+
+/* H2H */
+.h2h-section { margin-bottom:12px; }
+.h2h-bar-wrap { display:flex; align-items:center; gap:8px; }
+.h2h-num { font-family:'DM Mono',sans-serif; font-size:13px; font-weight:500; width:20px; text-align:center; flex-shrink:0; }
+.h2h-track { flex:1; height:8px; background:var(--card2); border-radius:4px; overflow:hidden; display:flex; }
+.h2h-home-fill { background:var(--accent); height:100%; transition:width 1s ease; }
+.h2h-draw-fill { background:var(--text3); height:100%; transition:width 1s ease; }
+.h2h-away-fill { background:var(--red); height:100%; transition:width 1s ease; }
+.h2h-legend { display:flex; gap:10px; margin-top:5px; justify-content:center; }
+.h2h-leg { font-size:10px; color:var(--text3); display:flex; align-items:center; gap:4px; }
+.h2h-leg-dot { width:7px; height:7px; border-radius:50%; }
+
+/* Reasoning */
+.reasoning-text { font-size:12px; color:var(--text2); line-height:1.7; border-top:1px solid var(--border); padding-top:12px; }
+
+/* Regen */
+.btn-regen { width:100%; background:var(--card); border:1.5px solid var(--border2); border-radius:12px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; color:var(--text2); transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; }
+.btn-regen:hover { color:var(--text); background:var(--card2); }
+
+/* State */
+.state-box { text-align:center; padding:52px 20px; }
+.state-icon { font-size:40px; margin-bottom:12px; }
+.state-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:17px; font-weight:700; margin-bottom:6px; color:var(--text); }
+.state-sub { font-size:13px; color:var(--text2); line-height:1.6; }
+.spinner { width:32px; height:32px; border:3px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 14px; }
+
+/* Analyzing */
+.analyzing { text-align:center; padding:48px 20px; }
+.analyzing-orb { width:64px; height:64px; background:rgba(108,99,255,0.15); border:2px solid rgba(108,99,255,0.3); border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:28px; animation:glow 2s ease infinite; }
+.analyzing-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:18px; font-weight:800; color:var(--accent2); margin-bottom:16px; }
+.analyzing-steps { display:flex; flex-direction:column; gap:6px; }
+.a-step { font-size:13px; color:var(--text2); opacity:0; animation:fadeUp 0.5s ease forwards; }
+
+/* Toast */
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:999; background:var(--card2); color:var(--text); border-radius:20px; padding:10px 20px; font-size:13px; font-weight:600; box-shadow:0 4px 24px rgba(0,0,0,0.5); border:1px solid var(--border2); white-space:nowrap; pointer-events:none; }
+@keyframes tin  { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes tout { from{opacity:1;transform:translateX(-50%) translateY(0)} to{opacity:0;transform:translateX(-50%) translateY(10px)} }
+.toast { animation:tin 0.2s ease; }
+.toast.hide { animation:tout 0.2s ease forwards; }
+
+@media(min-width:640px){
+  .header,.hero,.filter-bar,.main,.builder { max-width:640px; margin-left:auto; margin-right:auto; }
+  .builder { left:50%; transform:translateX(-50%); right:auto; width:640px; }
+  .toast { bottom:30px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">
+    <div class="logo-mark">⚽</div>
+    <div class="logo-name">Parlay<span>Stats</span></div>
+  </div>
+  <div class="header-right">
+    <div class="badge-pure">PURE DATA</div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Football · Poisson Model · No AI</div>
+  <h1 class="hero-title">Prediksi <em>Parlay</em><br>Berbasis Statistik</h1>
+  <p class="hero-desc">Pilih 2–6 pertandingan, tentukan market, dan dapatkan analisis berdasarkan form, H2H, standings, dan xG.</p>
+  <div class="warning-pill">⚠️ Bukan jaminan — gunakan sebagai referensi saja</div>
+</section>
+
+<div class="filter-bar">
+  <div class="filter-row">
+    <div class="filter-group" style="flex:2">
+      <div class="filter-label">Kompetisi</div>
+      <select class="filter-select" id="compSel">
+        <option value="PL">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+        <option value="PD">🇪🇸 La Liga</option>
+        <option value="BL1">🇩🇪 Bundesliga</option>
+        <option value="SA">🇮🇹 Serie A</option>
+        <option value="FL1">🇫🇷 Ligue 1</option>
+        <option value="DED">🇳🇱 Eredivisie</option>
+        <option value="PPL">🇵🇹 Primeira Liga</option>
+        <option value="CL">🏆 Champions League</option>
+        <option value="EL">🟠 Europa League</option>
+      </select>
+    </div>
+    <div class="filter-group" style="flex:1">
+      <div class="filter-label">Tanggal</div>
+      <input type="date" class="filter-date" id="dateInp">
+    </div>
+  </div>
+  <button class="load-btn" onclick="loadMatches()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    Cari Pertandingan
+  </button>
+</div>
+
+<div class="main" id="mainWrap">
+  <div class="state-box">
+    <div class="state-icon">⚽</div>
+    <div class="state-title">Pilih kompetisi & tanggal</div>
+    <div class="state-sub">Lalu klik "Cari Pertandingan"<br>untuk melihat daftar match</div>
+  </div>
+</div>
+
+<!-- BUILDER -->
+<div class="builder" id="builderEl">
+  <div class="builder-top">
+    <div class="builder-title">
+      <div class="builder-dot"></div>
+      Parlay <span id="pickCnt" style="color:var(--accent)">0</span>/6
+    </div>
+    <div class="builder-sub" id="builderSubTxt">Pilih 2–6 pertandingan</div>
+  </div>
+  <div class="builder-picks" id="builderPicksEl"></div>
+  <div class="builder-actions">
+    <button class="btn-clear" onclick="clearAll()">Hapus</button>
+    <button class="btn-analyze" id="analyzeBtn" onclick="runPredict()" disabled>
+      📊 Analisis Parlay
+    </button>
+  </div>
+</div>
+
+<script>
+let currentComp = 'PL';
+let allMatches  = [];
+let selected    = {};
+const MAX = 6, MIN = 2;
+const MARKETS = ['1X2','Home Win','Away Win','Draw','Over 0.5','Under 0.5','Over 1.5','Under 1.5','Over 2.5','Under 2.5','Over 3.5','Under 3.5','Over 4.5','Under 4.5','BTTS Yes','BTTS No'];
+
+// ── Toast ──
+let toastT;
+function showToast(msg) {
+  let el = document.getElementById('__toast');
+  if (!el) { el = document.createElement('div'); el.id = '__toast'; el.className = 'toast'; document.body.appendChild(el); }
+  el.className = 'toast'; el.textContent = msg;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { el.classList.add('hide'); setTimeout(() => el.remove(), 250); }, 2500);
+}
+
+// ── Load matches ──
+async function loadMatches() {
+  const comp = document.getElementById('compSel').value;
+  const date = document.getElementById('dateInp').value;
+  currentComp = comp;
+  selected = {};
+  updateBuilder();
+
+  const wrap = document.getElementById('mainWrap');
+  wrap.innerHTML = '<div class="state-box"><div class="spinner"></div><div class="state-title">Memuat pertandingan...</div></div>';
+
+  try {
+    const from = date || new Date().toISOString().split('T')[0];
+    const r = await fetch(`/api/matches?comp=${comp}&from=${from}`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    allMatches = d.matches || [];
+    if (!allMatches.length) {
+      wrap.innerHTML = `<div class="state-box">
+        <div class="state-icon">📭</div>
+        <div class="state-title">Tidak ada pertandingan</div>
+        <div class="state-sub">Coba tanggal atau kompetisi lain.<br>PL biasanya main akhir pekan.</div>
+      </div>`;
+      return;
+    }
+    renderList();
+  } catch(e) {
+    wrap.innerHTML = `<div class="state-box"><div class="state-icon">❌</div><div class="state-title">Gagal memuat</div><div class="state-sub">${e.message}</div></div>`;
+  }
+}
+
+// ── Render match list ──
+function renderList() {
+  const wrap = document.getElementById('mainWrap');
+  const compName = document.getElementById('compSel').options[document.getElementById('compSel').selectedIndex].text;
+
+  // Group by date
+  const byDate = {};
+  allMatches.forEach(m => {
+    const day = m.utcDate ? m.utcDate.split('T')[0] : 'Unknown';
+    if (!byDate[day]) byDate[day] = [];
+    byDate[day].push(m);
+  });
+
+  let html = `<div class="list-head">
+    <span class="list-head-title">${compName.replace(/^[^\s]+\s/,'')} · ${allMatches.length} Matches</span>
+    <span class="list-head-count">Tap untuk pilih</span>
+  </div>`;
+
+  Object.entries(byDate).forEach(([day, matches]) => {
+    const dayLabel = new Date(day+'T12:00:00').toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'short'});
+    html += `<div class="comp-divider"><span class="comp-divider-name">📅 ${dayLabel}</span></div>`;
+
+    matches.forEach((m, i) => {
+      const id      = m.id;
+      const home    = m.homeTeam?.shortName || m.homeTeam?.name || 'Home';
+      const away    = m.awayTeam?.shortName || m.awayTeam?.name || 'Away';
+      const homeFull = m.homeTeam?.name || home;
+      const awayFull = m.awayTeam?.name || away;
+      const homeId  = m.homeTeam?.id;
+      const awayId  = m.awayTeam?.id;
+      const homeCrest = m.homeTeam?.crest || '';
+      const awayCrest = m.awayTeam?.crest || '';
+      const ts = m.utcDate ? new Date(m.utcDate).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'}) : '--:--';
+      const isSel = !!selected[id];
+      const selMkt = selected[id]?.market || '1X2';
+
+      html += `<div class="match-card${isSel?' selected':''}" id="card-${id}"
+        style="animation-delay:${i*0.04}s"
+        onclick="togglePick(${id},${homeId},${awayId},'${esc(homeFull)}','${esc(awayFull)}','${esc(homeCrest)}','${esc(awayCrest)}',this)">
+        <div class="match-card-inner">
+          <div class="teams-row">
+            <div class="team-block">
+              ${homeCrest
+                ? `<img class="team-crest" src="${homeCrest}" alt="${home}" onerror="this.outerHTML='<div class=\\'team-crest-ph\\'>${home.slice(0,3)}</div>'">`
+                : `<div class="team-crest-ph">${home.slice(0,3)}</div>`}
+              <div class="team-name">${home}</div>
+            </div>
+            <div class="vs-block">
+              <div class="vs-time">${ts}</div>
+              <div class="vs-label">VS</div>
+            </div>
+            <div class="team-block">
+              ${awayCrest
+                ? `<img class="team-crest" src="${awayCrest}" alt="${away}" onerror="this.outerHTML='<div class=\\'team-crest-ph\\'>${away.slice(0,3)}</div>'">`
+                : `<div class="team-crest-ph">${away.slice(0,3)}</div>`}
+              <div class="team-name">${away}</div>
+            </div>
+          </div>
+          <div class="match-footer">
+            <div class="match-check">
+              <svg class="check-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="market-wrap" onclick="event.stopPropagation()">
+              <select class="market-sel" id="mkt-${id}" onchange="changeMarket(${id},this.value)">
+                ${MARKETS.map(mk=>`<option value="${mk}"${mk===selMkt?' selected':''}>${mk}</option>`).join('')}
+              </select>
+            </div>
+            <div class="selected-badge">✓ Dipilih</div>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  wrap.innerHTML = html;
+}
+
+function esc(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ── Toggle pick ──
+function togglePick(id, homeId, awayId, home, away, homeCrest, awayCrest, card) {
+  if (selected[id]) {
+    delete selected[id];
+    card.classList.remove('selected');
+  } else {
+    if (Object.keys(selected).length >= MAX) { showToast('Maksimal 6 picks'); return; }
+    const market = document.getElementById('mkt-'+id)?.value || '1X2';
+    selected[id] = { match_id:id, home_id:homeId, away_id:awayId, home_name:home, away_name:away, home_crest:homeCrest, away_crest:awayCrest, market, comp:currentComp };
+    card.classList.add('selected');
+  }
+  updateBuilder();
+}
+
+function changeMarket(id, val) {
+  if (selected[id]) { selected[id].market = val; updateBuilder(); }
+}
+
+// ── Update builder ──
+function updateBuilder() {
+  const picks = Object.values(selected);
+  const panel = document.getElementById('builderEl');
+  const btn   = document.getElementById('analyzeBtn');
+  document.getElementById('pickCnt').textContent = picks.length;
+  panel.classList.toggle('show', picks.length > 0);
+  btn.disabled = picks.length < MIN;
+  document.getElementById('builderSubTxt').textContent =
+    picks.length === 0 ? 'Pilih 2–6 pertandingan' :
+    picks.length < MIN ? `Tambah ${MIN-picks.length} lagi` :
+    `${picks.length} pick siap dianalisis`;
+  document.getElementById('builderPicksEl').innerHTML = picks.map(p =>
+    `<div class="pick-chip">
+      ${p.home_crest ? `<img src="${p.home_crest}" alt="" onerror="this.remove()">` : ''}
+      <span>${p.home_name.split(' ')[0]} vs ${p.away_name.split(' ')[0]}</span>
+      <span class="pick-chip-mkt">${p.market}</span>
+    </div>`
+  ).join('');
+}
+
+function clearAll() {
+  selected = {};
+  document.querySelectorAll('.match-card.selected').forEach(c => c.classList.remove('selected'));
+  updateBuilder();
+}
+
+// ── Run prediction ──
+async function runPredict() {
+  const picks = Object.values(selected);
+  if (picks.length < MIN) return;
+  const wrap = document.getElementById('mainWrap');
+  wrap.innerHTML = `<div class="analyzing">
+    <div class="analyzing-orb">📊</div>
+    <div class="analyzing-title">Menganalisis ${picks.length} Pertandingan...</div>
+    <div class="analyzing-steps">
+      <div class="a-step" style="animation-delay:0.1s">⚡ Mengambil data form tim...</div>
+      <div class="a-step" style="animation-delay:0.5s">👕 Mengambil info skuad & top scorer...</div>
+      <div class="a-step" style="animation-delay:0.9s">📈 Menghitung xG dengan model Poisson...</div>
+      <div class="a-step" style="animation-delay:1.3s">⚔️ Memproses head-to-head & klasemen...</div>
+      <div class="a-step" style="animation-delay:1.7s">🎯 Menghitung confidence parlay...</div>
+    </div>
+  </div>`;
+  try {
+    const r = await fetch('/api/predict', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({picks})
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    renderResult(data, picks);
+  } catch(e) {
+    wrap.innerHTML = `<div class="state-box"><div class="state-icon">❌</div><div class="state-title">Analisis gagal</div><div class="state-sub">${e.message}</div></div>`;
+  }
+}
+
+// ── Render result ──
+function renderResult(data, picks) {
+  const wrap = document.getElementById('mainWrap');
+  const conf = data.overall_confidence || 0;
+  const cls  = conf >= 60 ? 'high' : conf >= 40 ? 'mid' : 'low';
+  const fillColor = conf>=60?'var(--green)':conf>=40?'var(--amber)':'var(--red)';
+  const riskText = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
+  const riskTag  = conf>=60?'tag-g':conf>=40?'tag-a':'tag-r';
+
+  const cards = (data.predictions||[]).map((p,i) => {
+    const s    = p.stats || {};
+    const gp   = p.goal_probs || {};
+    const pCls = p.confidence>=60?'high':p.confidence>=40?'mid':'low';
+    const pFill= p.confidence>=60?'var(--green)':p.confidence>=40?'var(--amber)':'var(--red)';
+
+    // Form dots
+    const dots = str => (str||'?????').split('').map(c => {
+      const cc = c==='W'?'W':c==='D'?'D':c==='L'?'L':'Q';
+      return `<div class="fd ${cc}">${c}</div>`;
+    }).join('');
+
+    // Outcome bars
+    const hwp = s.home_win_prob||0, drp = s.draw_prob||0, awp = s.away_win_prob||0;
+
+    // H2H
+    const h2hT = (s.h2h_home_wins||0)+(s.h2h_draws||0)+(s.h2h_away_wins||0);
+    const hwPct = h2hT?Math.round((s.h2h_home_wins||0)/h2hT*100):33;
+    const drPct = h2hT?Math.round((s.h2h_draws||0)/h2hT*100):34;
+    const awPct = h2hT?100-hwPct-drPct:33;
+
+    // Pick crest from selected picks
+    const selPick = picks.find(pk => pk.home_name === p.home && pk.away_name === p.away);
+    const hCrest  = selPick?.home_crest || '';
+    const aCrest  = selPick?.away_crest || '';
+
+    const goalLines = ['0.5','1.5','2.5','3.5','4.5'].map(line => {
+      const key = line.replace('.','_');
+      const ov  = gp['over_'+key] || 0;
+      const un  = gp['under_'+key] || 0;
+      const isActive = p.market===`Over ${line}`||p.market===`Under ${line}`;
+      return `<div class="goal-cell${isActive?' active':''}">
+        <div class="goal-line-label">${line}</div>
+        <div class="goal-over">O:${ov}%</div>
+        <div class="goal-under">U:${un}%</div>
+      </div>`;
+    }).join('');
+
+    const topScores = (gp.top_scores||[]).slice(0,6).map((sc,si) =>
+      `<div class="score-chip${si===0?' top-score':''}">
+        <div class="score-chip-val">${sc.score}</div>
+        <div class="score-chip-pct">${sc.prob}%</div>
+      </div>`
+    ).join('');
+
+    return `<div class="pred-card" style="animation-delay:${i*0.08}s">
+      <div class="pred-card-header">
+        ${hCrest?`<img class="pred-home-crest" src="${hCrest}" onerror="this.remove()" alt="">`:''}
+        <div class="pred-match-name">${p.home} vs ${p.away}</div>
+        ${aCrest?`<img class="pred-away-crest" src="${aCrest}" onerror="this.remove()" alt="">`:''}
+        <div class="pred-mkt">${p.market}</div>
+      </div>
+      <div class="pred-body">
+
+        <div class="pick-result">
+          <div class="pick-result-left">
+            <div class="pick-checkmark">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div class="pick-text">${p.pick}</div>
+              <div class="pick-conf-bar" style="width:80px">
+                <div class="pick-conf-fill" style="width:${p.confidence}%;background:${pFill}"></div>
+              </div>
+            </div>
+          </div>
+          <div class="pick-conf-num ${pCls}">${p.confidence}%</div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">Form Terakhir</div>
+          <div class="form-teams">
+            <div class="form-team-row">
+              ${hCrest?`<img class="form-team-crest" src="${hCrest}" onerror="this.remove()" alt="">`:''}
+              <span class="form-team-name">${p.home.split(' ')[0]}</span>
+              <div class="form-dots">${dots(s.home_form)}</div>
+              <span class="form-pos">#${s.home_pos||'?'}</span>
+            </div>
+            <div class="form-team-row">
+              ${aCrest?`<img class="form-team-crest" src="${aCrest}" onerror="this.remove()" alt="">`:''}
+              <span class="form-team-name">${p.away.split(' ')[0]}</span>
+              <div class="form-dots">${dots(s.away_form)}</div>
+              <span class="form-pos">#${s.away_pos||'?'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="outcome-section">
+          <div class="section-label">Probabilitas 1X2</div>
+          <div class="outcome-bars">
+            <div class="outcome-bar-row">
+              <span class="outcome-bar-label">${p.home.split(' ')[0]}</span>
+              <div class="outcome-bar-track"><div class="outcome-bar-fill" style="width:${hwp}%;background:var(--accent)"></div></div>
+              <span class="outcome-bar-pct">${hwp}%</span>
+            </div>
+            <div class="outcome-bar-row">
+              <span class="outcome-bar-label">Draw</span>
+              <div class="outcome-bar-track"><div class="outcome-bar-fill" style="width:${drp}%;background:var(--amber)"></div></div>
+              <span class="outcome-bar-pct">${drp}%</span>
+            </div>
+            <div class="outcome-bar-row">
+              <span class="outcome-bar-label">${p.away.split(' ')[0]}</span>
+              <div class="outcome-bar-track"><div class="outcome-bar-fill" style="width:${awp}%;background:var(--red)"></div></div>
+              <span class="outcome-bar-pct">${awp}%</span>
+            </div>
+          </div>
+        </div>
+
+        ${gp.over_0_5 ? `
+        <div class="goal-section">
+          <div class="section-label">Over/Under (xG: ${s.home_xg||0} + ${s.away_xg||0} = ${s.total_xg||0})</div>
+          <div class="goal-lines">${goalLines}</div>
+        </div>
+
+        <div class="scores-section">
+          <div class="section-label">Skor Paling Mungkin</div>
+          <div class="scores-chips">${topScores}</div>
+        </div>` : ''}
+
+        ${h2hT > 0 ? `
+        <div class="h2h-section">
+          <div class="section-label">Head to Head (${h2hT} pertandingan)</div>
+          <div class="h2h-bar-wrap">
+            <span class="h2h-num" style="color:var(--accent)">${s.h2h_home_wins||0}</span>
+            <div class="h2h-track">
+              <div class="h2h-home-fill" style="width:${hwPct}%"></div>
+              <div class="h2h-draw-fill" style="width:${drPct}%"></div>
+              <div class="h2h-away-fill" style="width:${awPct}%"></div>
+            </div>
+            <span class="h2h-num" style="color:var(--red)">${s.h2h_away_wins||0}</span>
+          </div>
+          <div class="h2h-legend">
+            <div class="h2h-leg"><div class="h2h-leg-dot" style="background:var(--accent)"></div>${p.home.split(' ')[0]}</div>
+            <div class="h2h-leg"><div class="h2h-leg-dot" style="background:var(--text3)"></div>Draw ${s.h2h_draws||0}</div>
+            <div class="h2h-leg"><div class="h2h-leg-dot" style="background:var(--red)"></div>${p.away.split(' ')[0]}</div>
+          </div>
+        </div>` : ''}
+
+        ${(s.home_top_scorer && s.home_top_scorer !== '—') || (s.away_top_scorer && s.away_top_scorer !== '—') ? `
+        <div style="margin-bottom:12px">
+          <div class="section-label" style="margin-bottom:6px">Top Scorer Liga</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            ${s.home_top_scorer && s.home_top_scorer !== '—' ? '<div style="display:flex;align-items:center;gap:8px;background:var(--card);border-radius:8px;padding:7px 10px"><span style="font-size:11px;color:var(--text2);flex:1">'+p.home.split(' ')[0]+'</span><span style="font-size:12px;font-weight:600;color:var(--green)">'+s.home_top_scorer+'</span></div>' : ''}
+            ${s.away_top_scorer && s.away_top_scorer !== '—' ? '<div style="display:flex;align-items:center;gap:8px;background:var(--card);border-radius:8px;padding:7px 10px"><span style="font-size:11px;color:var(--text2);flex:1">'+p.away.split(' ')[0]+'</span><span style="font-size:12px;font-weight:600;color:var(--green)">'+s.away_top_scorer+'</span></div>' : ''}
+          </div>
+        </div>` : ''}
+
+        ${s.home_squad && s.away_squad && s.home_squad > 0 ? `
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <div class="stat-box" style="flex:1"><div class="stat-val" style="font-size:16px;color:var(--text2)">${s.home_squad}</div><div class="stat-lbl">Skuad ${p.home.split(' ')[0]}</div></div>
+          <div class="stat-box" style="flex:1"><div class="stat-val" style="font-size:16px;color:var(--text2)">${s.away_squad}</div><div class="stat-lbl">Skuad ${p.away.split(' ')[0]}</div></div>
+        </div>` : ''}
+
+        <div class="reasoning-text">${p.reasoning}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="result-page">
+    <div class="conf-hero">
+      <div class="conf-label">Overall Parlay Confidence</div>
+      <div class="conf-number ${cls}" id="confNum">0%</div>
+      <div class="conf-sub">${data.legs}-leg parlay · Model Poisson</div>
+      <div class="conf-bar-bg"><div class="conf-bar-fill" id="confBar" style="width:0%;background:${fillColor}"></div></div>
+      <div class="conf-tags">
+        <div class="conf-tag ${riskTag}">${riskText}</div>
+        <div class="conf-tag tag-p">${data.legs} Legs</div>
+      </div>
+    </div>
+    <div class="pred-cards">${cards}</div>
+    <button class="btn-regen" onclick="runPredict()">🔄 Analisis Ulang</button>
+  </div>`;
+
+  setTimeout(() => {
+    const bar = document.getElementById('confBar');
+    const num = document.getElementById('confNum');
+    if (bar) bar.style.width = conf + '%';
+    if (num) num.textContent = conf + '%';
+  }, 100);
+}
+
+// ── Init ──
+document.getElementById('dateInp').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
