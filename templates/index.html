@@ -299,6 +299,33 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
   .builder { left:50%; transform:translateX(-50%); right:auto; width:640px; }
   .toast { bottom:30px; }
 }
+
+/* ── Visual result components ── */
+.scorer-card { display:flex; align-items:center; gap:10px; background:var(--card); border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; }
+.scorer-avatar { width:36px; height:36px; border-radius:50%; background:var(--card2); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; border:2px solid var(--border2); }
+.scorer-team-crest { width:14px; height:14px; object-fit:contain; }
+.scorer-info { flex:1; min-width:0; }
+.scorer-name { font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.scorer-team { font-size:10px; color:var(--text3); margin-top:1px; }
+.scorer-badge { display:flex; align-items:center; gap:4px; background:rgba(16,217,126,0.12); border:1px solid rgba(16,217,126,0.25); border-radius:20px; padding:4px 10px; flex-shrink:0; }
+.scorer-badge-num { font-family:'DM Mono',sans-serif; font-size:16px; font-weight:500; color:var(--green); line-height:1; }
+.scorer-badge-lbl { font-size:9px; color:var(--green); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+
+.squad-compare { display:flex; flex-direction:column; gap:6px; }
+.squad-bar-wrap { display:flex; align-items:center; gap:8px; }
+.squad-crest { width:18px; height:18px; object-fit:contain; flex-shrink:0; }
+.squad-name  { font-size:11px; font-weight:600; color:var(--text2); width:72px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.squad-track { flex:1; height:8px; background:var(--card2); border-radius:4px; overflow:hidden; }
+.squad-fill  { height:100%; border-radius:4px; background:var(--accent); transition:width 1s ease; }
+.squad-num   { font-family:'DM Mono',sans-serif; font-size:11px; font-weight:500; color:var(--text2); width:24px; text-align:right; flex-shrink:0; }
+
+.reasoning-toggle { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:8px 0 4px; border-top:1px solid var(--border); margin-top:8px; user-select:none; -webkit-tap-highlight-color:transparent; }
+.reasoning-toggle-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); }
+.reasoning-toggle-icon { font-size:12px; color:var(--text3); transition:transform 0.2s; }
+.reasoning-toggle.open .reasoning-toggle-icon { transform:rotate(180deg); }
+.reasoning-body { font-size:12px; color:var(--text2); line-height:1.7; display:none; padding-top:8px; }
+.reasoning-body.open { display:block; }
+
 </style>
 </head>
 <body>
@@ -580,14 +607,24 @@ function renderResult(data, picks) {
   const conf = data.overall_confidence || 0;
   const cls  = conf >= 60 ? 'high' : conf >= 40 ? 'mid' : 'low';
   const fillColor = conf>=60?'var(--green)':conf>=40?'var(--amber)':'var(--red)';
-  const riskText = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
-  const riskTag  = conf>=60?'tag-g':conf>=40?'tag-a':'tag-r';
+  const riskText  = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
+  const riskTag   = conf>=60?'tag-g':conf>=40?'tag-a':'tag-r';
 
   const cards = (data.predictions||[]).map((p,i) => {
-    const s    = p.stats || {};
-    const gp   = p.goal_probs || {};
-    const pCls = p.confidence>=60?'high':p.confidence>=40?'mid':'low';
-    const pFill= p.confidence>=60?'var(--green)':p.confidence>=40?'var(--amber)':'var(--red)';
+    const s   = p.stats || {};
+    const gp  = p.goal_probs || {};
+    const pCls  = p.confidence>=60?'high':p.confidence>=40?'mid':'low';
+    const pFill = p.confidence>=60?'var(--green)':p.confidence>=40?'var(--amber)':'var(--red)';
+
+    const hwp = s.home_win_prob||0, drp = s.draw_prob||0, awp = s.away_win_prob||0;
+    const h2hT = (s.h2h_home_wins||0)+(s.h2h_draws||0)+(s.h2h_away_wins||0);
+    const hwPct = h2hT?Math.round((s.h2h_home_wins||0)/h2hT*100):33;
+    const drPct = h2hT?Math.round((s.h2h_draws||0)/h2hT*100):34;
+    const awPct = h2hT?100-hwPct-drPct:33;
+
+    const selPick = picks.find(pk => pk.home_name===p.home && pk.away_name===p.away);
+    const hCrest  = selPick?.home_crest || '';
+    const aCrest  = selPick?.away_crest || '';
 
     // Form dots
     const dots = str => (str||'?????').split('').map(c => {
@@ -595,20 +632,7 @@ function renderResult(data, picks) {
       return `<div class="fd ${cc}">${c}</div>`;
     }).join('');
 
-    // Outcome bars
-    const hwp = s.home_win_prob||0, drp = s.draw_prob||0, awp = s.away_win_prob||0;
-
-    // H2H
-    const h2hT = (s.h2h_home_wins||0)+(s.h2h_draws||0)+(s.h2h_away_wins||0);
-    const hwPct = h2hT?Math.round((s.h2h_home_wins||0)/h2hT*100):33;
-    const drPct = h2hT?Math.round((s.h2h_draws||0)/h2hT*100):34;
-    const awPct = h2hT?100-hwPct-drPct:33;
-
-    // Pick crest from selected picks
-    const selPick = picks.find(pk => pk.home_name === p.home && pk.away_name === p.away);
-    const hCrest  = selPick?.home_crest || '';
-    const aCrest  = selPick?.away_crest || '';
-
+    // Goal lines
     const goalLines = ['0.5','1.5','2.5','3.5','4.5'].map(line => {
       const key = line.replace('.','_');
       const ov  = gp['over_'+key] || 0;
@@ -621,12 +645,67 @@ function renderResult(data, picks) {
       </div>`;
     }).join('');
 
+    // Top scorelines
     const topScores = (gp.top_scores||[]).slice(0,6).map((sc,si) =>
       `<div class="score-chip${si===0?' top-score':''}">
         <div class="score-chip-val">${sc.score}</div>
         <div class="score-chip-pct">${sc.prob}%</div>
       </div>`
     ).join('');
+
+    // Squad comparison bar
+    const hSq = s.home_squad||0, aSq = s.away_squad||0;
+    const maxSq = Math.max(hSq, aSq, 1);
+    const squadHTML = hSq>0 && aSq>0 ? `
+      <div class="squad-compare">
+        <div class="squad-bar-wrap">
+          ${hCrest?`<img class="squad-crest" src="${hCrest}" onerror="this.remove()" alt="">`:'<div style="width:18px"></div>'}
+          <span class="squad-name">${p.home.split(' ')[0]}</span>
+          <div class="squad-track"><div class="squad-fill" style="width:${Math.round(hSq/maxSq*100)}%"></div></div>
+          <span class="squad-num">${hSq}</span>
+        </div>
+        <div class="squad-bar-wrap">
+          ${aCrest?`<img class="squad-crest" src="${aCrest}" onerror="this.remove()" alt="">`:'<div style="width:18px"></div>'}
+          <span class="squad-name">${p.away.split(' ')[0]}</span>
+          <div class="squad-track"><div class="squad-fill" style="width:${Math.round(aSq/maxSq*100)}%;background:var(--red)"></div></div>
+          <span class="squad-num">${aSq}</span>
+        </div>
+      </div>` : '';
+
+    // Scorer cards
+    const scorerHTML = (s.home_top_scorer && s.home_top_scorer!=='—') || (s.away_top_scorer && s.away_top_scorer!=='—') ? `
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${s.home_top_scorer && s.home_top_scorer!=='—' ? `
+        <div class="scorer-card">
+          <div class="scorer-avatar">⚽</div>
+          <div class="scorer-info">
+            <div class="scorer-name">${s.home_top_scorer.split(' (')[0]}</div>
+            <div class="scorer-team" style="display:flex;align-items:center;gap:4px">
+              ${hCrest?`<img class="scorer-team-crest" src="${hCrest}" onerror="this.remove()" alt="">`:''}
+              ${p.home.split(' ')[0]}
+            </div>
+          </div>
+          <div class="scorer-badge">
+            <span class="scorer-badge-num">${(s.home_top_scorer.match(/\d+/)||['?'])[0]}</span>
+            <span class="scorer-badge-lbl">Gol</span>
+          </div>
+        </div>` : ''}
+        ${s.away_top_scorer && s.away_top_scorer!=='—' ? `
+        <div class="scorer-card">
+          <div class="scorer-avatar">⚽</div>
+          <div class="scorer-info">
+            <div class="scorer-name">${s.away_top_scorer.split(' (')[0]}</div>
+            <div class="scorer-team" style="display:flex;align-items:center;gap:4px">
+              ${aCrest?`<img class="scorer-team-crest" src="${aCrest}" onerror="this.remove()" alt="">`:''}
+              ${p.away.split(' ')[0]}
+            </div>
+          </div>
+          <div class="scorer-badge">
+            <span class="scorer-badge-num">${(s.away_top_scorer.match(/\d+/)||['?'])[0]}</span>
+            <span class="scorer-badge-lbl">Gol</span>
+          </div>
+        </div>` : ''}
+      </div>` : '';
 
     return `<div class="pred-card" style="animation-delay:${i*0.08}s">
       <div class="pred-card-header">
@@ -653,7 +732,7 @@ function renderResult(data, picks) {
         </div>
 
         <div class="form-section">
-          <div class="section-label">Form Terakhir</div>
+          <div class="section-label">Form Terakhir (5 Laga)</div>
           <div class="form-teams">
             <div class="form-team-row">
               ${hCrest?`<img class="form-team-crest" src="${hCrest}" onerror="this.remove()" alt="">`:''}
@@ -693,10 +772,9 @@ function renderResult(data, picks) {
 
         ${gp.over_0_5 ? `
         <div class="goal-section">
-          <div class="section-label">Over/Under (xG: ${s.home_xg||0} + ${s.away_xg||0} = ${s.total_xg||0})</div>
+          <div class="section-label">Over/Under · xG ${s.home_xg||0} + ${s.away_xg||0} = ${s.total_xg||0}</div>
           <div class="goal-lines">${goalLines}</div>
         </div>
-
         <div class="scores-section">
           <div class="section-label">Skor Paling Mungkin</div>
           <div class="scores-chips">${topScores}</div>
@@ -704,7 +782,7 @@ function renderResult(data, picks) {
 
         ${h2hT > 0 ? `
         <div class="h2h-section">
-          <div class="section-label">Head to Head (${h2hT} pertandingan)</div>
+          <div class="section-label">Head to Head · ${h2hT} Pertandingan</div>
           <div class="h2h-bar-wrap">
             <span class="h2h-num" style="color:var(--accent)">${s.h2h_home_wins||0}</span>
             <div class="h2h-track">
@@ -721,22 +799,24 @@ function renderResult(data, picks) {
           </div>
         </div>` : ''}
 
-        ${(s.home_top_scorer && s.home_top_scorer !== '—') || (s.away_top_scorer && s.away_top_scorer !== '—') ? `
-        <div style="margin-bottom:12px">
-          <div class="section-label" style="margin-bottom:6px">Top Scorer Liga</div>
-          <div style="display:flex;flex-direction:column;gap:5px">
-            ${s.home_top_scorer && s.home_top_scorer !== '—' ? '<div style="display:flex;align-items:center;gap:8px;background:var(--card);border-radius:8px;padding:7px 10px"><span style="font-size:11px;color:var(--text2);flex:1">'+p.home.split(' ')[0]+'</span><span style="font-size:12px;font-weight:600;color:var(--green)">'+s.home_top_scorer+'</span></div>' : ''}
-            ${s.away_top_scorer && s.away_top_scorer !== '—' ? '<div style="display:flex;align-items:center;gap:8px;background:var(--card);border-radius:8px;padding:7px 10px"><span style="font-size:11px;color:var(--text2);flex:1">'+p.away.split(' ')[0]+'</span><span style="font-size:12px;font-weight:600;color:var(--green)">'+s.away_top_scorer+'</span></div>' : ''}
-          </div>
+        ${scorerHTML ? `
+        <div class="section-label" style="margin-bottom:6px">Top Scorer Liga</div>
+        ${scorerHTML}
+        <div style="margin-bottom:12px"></div>` : ''}
+
+        ${squadHTML ? `
+        <div>
+          <div class="section-label" style="margin-bottom:6px">Ukuran Skuad</div>
+          ${squadHTML}
+          <div style="margin-bottom:12px"></div>
         </div>` : ''}
 
-        ${s.home_squad && s.away_squad && s.home_squad > 0 ? `
-        <div style="display:flex;gap:6px;margin-bottom:12px">
-          <div class="stat-box" style="flex:1"><div class="stat-val" style="font-size:16px;color:var(--text2)">${s.home_squad}</div><div class="stat-lbl">Skuad ${p.home.split(' ')[0]}</div></div>
-          <div class="stat-box" style="flex:1"><div class="stat-val" style="font-size:16px;color:var(--text2)">${s.away_squad}</div><div class="stat-lbl">Skuad ${p.away.split(' ')[0]}</div></div>
-        </div>` : ''}
+        <div class="reasoning-toggle" onclick="toggleReasoning(this)">
+          <span class="reasoning-toggle-label">📋 Analisis Lengkap</span>
+          <span class="reasoning-toggle-icon">▼</span>
+        </div>
+        <div class="reasoning-body">${p.reasoning}</div>
 
-        <div class="reasoning-text">${p.reasoning}</div>
       </div>
     </div>`;
   }).join('');
@@ -762,6 +842,12 @@ function renderResult(data, picks) {
     if (bar) bar.style.width = conf + '%';
     if (num) num.textContent = conf + '%';
   }, 100);
+}
+
+function toggleReasoning(el) {
+  el.classList.toggle('open');
+  const body = el.nextElementSibling;
+  body.classList.toggle('open');
 }
 
 // ── Init ──
