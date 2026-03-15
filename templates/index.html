@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ParlayStats — Football Predictor</title>
 <meta name="theme-color" content="#0a0b10">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -344,6 +345,52 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
 .reasoning-mini-tag.a { background:rgba(251,191,36,0.1); color:var(--amber); border-color:rgba(251,191,36,0.25); }
 .reasoning-mini-tag.r { background:rgba(248,113,113,0.1); color:var(--red); border-color:rgba(248,113,113,0.25); }
 .reasoning-mini-tag.p { background:rgba(108,99,255,0.1); color:var(--accent2); border-color:rgba(108,99,255,0.25); }
+
+
+/* ── Export Slip ── */
+.export-btn { width:100%; background:linear-gradient(135deg,#1a1f35,#232840); border:1.5px solid var(--border2); border-radius:12px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; color:var(--text); transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; }
+.export-btn:hover { border-color:var(--accent); color:var(--accent); }
+.export-btn:active { transform:scale(0.98); }
+
+/* SLIP TEMPLATE (hidden, for screenshot) */
+#slipTemplate { position:fixed; left:-9999px; top:0; width:400px; background:#0f1117; font-family:'Plus Jakarta Sans',sans-serif; padding:0; z-index:-1; }
+.slip-wrap { background:#0f1117; padding:20px; min-width:400px; }
+.slip-header { text-align:center; padding:16px 0 12px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:14px; }
+.slip-logo { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; }
+.slip-logo-mark { width:28px; height:28px; background:#6c63ff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.slip-logo-text { font-size:16px; font-weight:800; color:#fff; letter-spacing:-0.3px; }
+.slip-logo-text span { color:#6c63ff; }
+.slip-ref { font-size:10px; color:#5a6080; margin-top:4px; letter-spacing:0.5px; }
+.slip-conf-row { display:flex; align-items:center; justify-content:space-between; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.2); border-radius:10px; padding:10px 14px; margin-bottom:12px; }
+.slip-conf-label { font-size:11px; color:#7880a0; font-weight:600; }
+.slip-conf-val { font-size:22px; font-weight:800; font-family:monospace; }
+.slip-conf-val.high { color:#10d97e; }
+.slip-conf-val.mid  { color:#fbbf24; }
+.slip-conf-val.low  { color:#f87171; }
+.slip-risk { font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px; }
+.slip-risk.g { background:rgba(16,217,126,0.1); color:#10d97e; border:1px solid rgba(16,217,126,0.25); }
+.slip-risk.a { background:rgba(251,191,36,0.1); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
+.slip-risk.r { background:rgba(248,113,113,0.1); color:#f87171; border:1px solid rgba(248,113,113,0.25); }
+.slip-picks { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+.slip-pick-row { background:#181b28; border-radius:10px; padding:10px 12px; border:1px solid rgba(255,255,255,0.06); }
+.slip-pick-num { font-size:10px; color:#5a6080; font-weight:700; margin-bottom:4px; letter-spacing:0.5px; }
+.slip-pick-match { font-size:13px; font-weight:700; color:#eef0f8; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+.slip-pick-match img { width:16px; height:16px; object-fit:contain; }
+.slip-pick-details { display:flex; align-items:center; justify-content:space-between; }
+.slip-pick-type { font-size:10px; color:#7880a0; }
+.slip-pick-result { display:flex; align-items:center; gap:6px; }
+.slip-pick-val { font-size:12px; font-weight:700; color:#6c63ff; background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.2); border-radius:5px; padding:2px 8px; }
+.slip-pick-conf { font-size:12px; font-weight:700; color:#10d97e; font-family:monospace; }
+.slip-pick-stats { display:flex; gap:5px; margin-top:5px; flex-wrap:wrap; }
+.slip-stat-tag { font-size:9px; font-weight:600; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.05); color:#5a6080; border:1px solid rgba(255,255,255,0.08); }
+.slip-stat-tag.g { background:rgba(16,217,126,0.08); color:#10d97e; border-color:rgba(16,217,126,0.2); }
+.slip-footer { border-top:1px solid rgba(255,255,255,0.06); padding-top:12px; display:flex; align-items:center; justify-content:space-between; }
+.slip-footer-note { font-size:10px; color:#3d4260; line-height:1.5; flex:1; }
+.slip-footer-brand { font-size:11px; font-weight:700; color:#6c63ff; opacity:0.7; }
+.slip-xg-row { display:flex; gap:5px; margin-top:4px; }
+.slip-xg-box { flex:1; background:rgba(108,99,255,0.06); border-radius:6px; padding:5px 8px; text-align:center; border:1px solid rgba(108,99,255,0.12); }
+.slip-xg-val { font-size:13px; font-weight:700; color:#8b85ff; font-family:monospace; }
+.slip-xg-lbl { font-size:9px; color:#5a6080; margin-top:1px; }
 
 </style>
 </head>
@@ -917,6 +964,15 @@ function renderResult(data, picks) {
     </div>`;
   }).join('');
 
+  // Store for export
+  window._lastResult = data;
+  window._lastPicks  = picks;
+  // Build slip content
+  setTimeout(() => {
+    const slipEl = document.getElementById('slipContent');
+    if (slipEl) slipEl.innerHTML = buildSlipHTML(data, picks);
+  }, 200);
+
   wrap.innerHTML = `<div class="result-page">
     <div class="conf-hero">
       <div class="conf-label">Overall Parlay Confidence</div>
@@ -930,6 +986,7 @@ function renderResult(data, picks) {
     </div>
     <div class="pred-cards">${cards}</div>
     <button class="btn-regen" onclick="runPredict()">🔄 Analisis Ulang</button>
+    <button class="export-btn" id="exportBtn" onclick="exportSlip()">📸 Export sebagai Gambar</button>
   </div>`;
 
   setTimeout(() => {
@@ -948,6 +1005,118 @@ function toggleReasoning(el) {
 
 // ── Init ──
 document.getElementById('dateInp').value = new Date().toISOString().split('T')[0];
+</script>
+
+<!-- SLIP TEMPLATE -->
+<div id="slipTemplate">
+  <div class="slip-wrap" id="slipContent"></div>
+</div>
+
+<script>
+function buildSlipHTML(data, picks) {
+  const conf = data.overall_confidence || 0;
+  const cls  = conf>=60?'high':conf>=40?'mid':'low';
+  const risk = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
+  const riskCls = conf>=60?'g':conf>=40?'a':'r';
+  const now  = new Date();
+  const dateStr = now.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
+                  now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  const refNo = 'PS' + Date.now().toString().slice(-10);
+
+  const picksHTML = (data.predictions||[]).map((p,i) => {
+    const s  = p.stats||{};
+    const gp = p.goal_probs||{};
+    const selPick = picks.find(pk=>pk.home_name===p.home&&pk.away_name===p.away);
+    const hCrest  = selPick?.home_crest||'';
+    const aCrest  = selPick?.away_crest||'';
+    const pCls    = p.confidence>=60?'#10d97e':p.confidence>=40?'#fbbf24':'#f87171';
+    return `<div class="slip-pick-row">
+      <div class="slip-pick-num">PICK ${i+1} · ${p.market}</div>
+      <div class="slip-pick-match">
+        ${hCrest?`<img src="${hCrest}" onerror="this.remove()" alt="">`:''}
+        ${p.home} vs ${p.away}
+        ${aCrest?`<img src="${aCrest}" onerror="this.remove()" alt="">`:''}
+      </div>
+      <div class="slip-pick-details">
+        <span class="slip-pick-type">Form: ${s.home_form||'?????'} | ${s.away_form||'?????'}</span>
+        <div class="slip-pick-result">
+          <span class="slip-pick-val">${p.pick}</span>
+          <span class="slip-pick-conf" style="color:${pCls}">${p.confidence}%</span>
+        </div>
+      </div>
+      <div class="slip-xg-row">
+        <div class="slip-xg-box"><div class="slip-xg-val">${s.home_xg||0}</div><div class="slip-xg-lbl">${p.home.split(' ')[0]} xG</div></div>
+        <div class="slip-xg-box"><div class="slip-xg-val">${s.away_xg||0}</div><div class="slip-xg-lbl">${p.away.split(' ')[0]} xG</div></div>
+        <div class="slip-xg-box"><div class="slip-xg-val">${gp.over_2_5||0}%</div><div class="slip-xg-lbl">Over 2.5</div></div>
+        <div class="slip-xg-box"><div class="slip-xg-val">${gp.btts_yes||0}%</div><div class="slip-xg-lbl">BTTS</div></div>
+      </div>
+      <div class="slip-pick-stats">
+        ${s.home_pos!==99?`<span class="slip-stat-tag">#${s.home_pos} ${p.home.split(' ')[0]}</span>`:''}
+        ${s.away_pos!==99?`<span class="slip-stat-tag">#${s.away_pos} ${p.away.split(' ')[0]}</span>`:''}
+        ${s.h2h_home_wins||s.h2h_away_wins?`<span class="slip-stat-tag">H2H: ${s.h2h_home_wins||0}M-${s.h2h_draws||0}S-${s.h2h_away_wins||0}M</span>`:''}
+        ${s.home_top_scorer&&s.home_top_scorer!=='—'?`<span class="slip-stat-tag g">⭐ ${s.home_top_scorer}</span>`:''}
+        ${s.away_top_scorer&&s.away_top_scorer!=='—'?`<span class="slip-stat-tag g">⭐ ${s.away_top_scorer}</span>`:''}
+        <span class="slip-stat-tag">Skor: ${gp.most_likely_score||'?-?'}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="slip-header">
+      <div class="slip-logo">
+        <div class="slip-logo-mark">⚽</div>
+        <div class="slip-logo-text">Parlay<span>Stats</span></div>
+      </div>
+      <div class="slip-ref">Ref: ${refNo} · ${dateStr}</div>
+    </div>
+    <div class="slip-conf-row">
+      <div>
+        <div class="slip-conf-label">PARLAY CONFIDENCE</div>
+        <div style="margin-top:2px"><span class="slip-risk ${riskCls}">${risk}</span></div>
+      </div>
+      <div class="slip-conf-val ${cls}">${conf}%</div>
+    </div>
+    <div class="slip-picks">${picksHTML}</div>
+    <div class="slip-footer">
+      <div class="slip-footer-note">Prediksi berbasis statistik & model Poisson.<br>Bukan jaminan — gunakan sebagai referensi.</div>
+      <div class="slip-footer-brand">ParlayStats</div>
+    </div>`;
+}
+
+async function exportSlip() {
+  const btn = document.getElementById('exportBtn');
+  if (!btn) return;
+  const origText = btn.innerHTML;
+  btn.innerHTML = '⏳ Generating...';
+  btn.disabled = true;
+
+  try {
+    const el = document.getElementById('slipContent');
+    el.style.display = 'block';
+
+    await new Promise(r => setTimeout(r, 300));
+
+    const canvas = await html2canvas(document.getElementById('slipTemplate'), {
+      backgroundColor: '#0f1117',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: 400,
+    });
+
+    const link = document.createElement('a');
+    link.download = `ParlayStats_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ Slip tersimpan!');
+  } catch(e) {
+    showToast('❌ Gagal export: ' + e.message);
+  } finally {
+    btn.innerHTML = origText;
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
