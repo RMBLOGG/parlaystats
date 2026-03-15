@@ -326,6 +326,25 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
 .reasoning-body { font-size:12px; color:var(--text2); line-height:1.7; display:none; padding-top:8px; }
 .reasoning-body.open { display:block; }
 
+
+/* ── Visual reasoning ── */
+.reasoning-visual { display:flex; flex-direction:column; gap:8px; padding-top:10px; }
+.reasoning-row { display:flex; align-items:center; gap:10px; background:var(--card); border-radius:10px; padding:9px 12px; }
+.reasoning-row-icon { font-size:16px; flex-shrink:0; width:24px; text-align:center; }
+.reasoning-row-content { flex:1; min-width:0; }
+.reasoning-row-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text3); margin-bottom:2px; }
+.reasoning-row-value { font-size:13px; font-weight:600; color:var(--text); }
+.reasoning-row-value.accent { color:var(--accent); }
+.reasoning-row-value.green  { color:var(--green); }
+.reasoning-row-value.amber  { color:var(--amber); }
+.reasoning-row-value.red    { color:var(--red); }
+.reasoning-mini-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:4px; }
+.reasoning-mini-tag { font-size:10px; font-weight:600; border-radius:5px; padding:2px 8px; background:var(--card2); color:var(--text2); border:1px solid var(--border2); }
+.reasoning-mini-tag.g { background:rgba(16,217,126,0.1); color:var(--green); border-color:rgba(16,217,126,0.25); }
+.reasoning-mini-tag.a { background:rgba(251,191,36,0.1); color:var(--amber); border-color:rgba(251,191,36,0.25); }
+.reasoning-mini-tag.r { background:rgba(248,113,113,0.1); color:var(--red); border-color:rgba(248,113,113,0.25); }
+.reasoning-mini-tag.p { background:rgba(108,99,255,0.1); color:var(--accent2); border-color:rgba(108,99,255,0.25); }
+
 </style>
 </head>
 <body>
@@ -815,7 +834,84 @@ function renderResult(data, picks) {
           <span class="reasoning-toggle-label">📋 Analisis Lengkap</span>
           <span class="reasoning-toggle-icon">▼</span>
         </div>
-        <div class="reasoning-body">${p.reasoning}</div>
+        <div class="reasoning-body">
+          <div class="reasoning-visual">
+
+            <div class="reasoning-row">
+              <div class="reasoning-row-icon">📊</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Form & Poin</div>
+                <div class="reasoning-row-value">${p.home.split(' ')[0]}: <span style="font-family:'DM Mono',monospace">${s.home_form||'?????'}</span> &nbsp;|&nbsp; ${p.away.split(' ')[0]}: <span style="font-family:'DM Mono',monospace">${s.away_form||'?????'}</span></div>
+              </div>
+            </div>
+
+            <div class="reasoning-row">
+              <div class="reasoning-row-icon">🏆</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Posisi Klasemen</div>
+                <div class="reasoning-row-value">${s.home_pos!==99?'#'+s.home_pos+' '+p.home.split(' ')[0]+' ('+s.home_points+' pts)':'—'} &nbsp;vs&nbsp; ${s.away_pos!==99?'#'+s.away_pos+' '+p.away.split(' ')[0]+' ('+s.away_points+' pts)':'—'}</div>
+              </div>
+            </div>
+
+            <div class="reasoning-row">
+              <div class="reasoning-row-icon">⚡</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Expected Goals (xG)</div>
+                <div class="reasoning-row-value accent">${p.home.split(' ')[0]} ${s.home_xg||0} + ${p.away.split(' ')[0]} ${s.away_xg||0} = ${s.total_xg||0} total</div>
+                <div class="reasoning-mini-tags">
+                  <span class="reasoning-mini-tag ${(gp.over_2_5||0)>=55?'g':(gp.over_2_5||0)>=40?'a':'r'}">Over 2.5: ${gp.over_2_5||0}%</span>
+                  <span class="reasoning-mini-tag ${(gp.btts_yes||0)>=55?'g':(gp.btts_yes||0)>=40?'a':'r'}">BTTS: ${gp.btts_yes||0}%</span>
+                  <span class="reasoning-mini-tag p">Top score: ${s.most_likely_score||'?-?'}</span>
+                </div>
+              </div>
+            </div>
+
+            ${h2hT>0?`<div class="reasoning-row">
+              <div class="reasoning-row-icon">⚔️</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Head to Head (${h2hT} laga)</div>
+                <div class="reasoning-row-value">${p.home.split(' ')[0]} <span class="reasoning-mini-tag g" style="display:inline">${s.h2h_home_wins||0}M</span> · Draw <span class="reasoning-mini-tag a" style="display:inline">${s.h2h_draws||0}</span> · ${p.away.split(' ')[0]} <span class="reasoning-mini-tag r" style="display:inline">${s.h2h_away_wins||0}M</span></div>
+              </div>
+            </div>`:''}
+
+            <div class="reasoning-row">
+              <div class="reasoning-row-icon">🎯</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Rata-rata Gol per Game</div>
+                <div class="reasoning-mini-tags">
+                  <span class="reasoning-mini-tag g">${p.home.split(' ')[0]} cetak ${s.home_avg_scored||0}</span>
+                  <span class="reasoning-mini-tag r">${p.home.split(' ')[0]} kebobolan ${s.home_avg_conceded||0}</span>
+                  <span class="reasoning-mini-tag g">${p.away.split(' ')[0]} cetak ${s.away_avg_scored||0}</span>
+                  <span class="reasoning-mini-tag r">${p.away.split(' ')[0]} kebobolan ${s.away_avg_conceded||0}</span>
+                </div>
+              </div>
+            </div>
+
+            ${s.home_top_scorer && s.home_top_scorer!=='—' || s.away_top_scorer && s.away_top_scorer!=='—' ? `<div class="reasoning-row">
+              <div class="reasoning-row-icon">⭐</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Top Scorer Aktif</div>
+                <div class="reasoning-mini-tags">
+                  ${s.home_top_scorer && s.home_top_scorer!=='—'?`<span class="reasoning-mini-tag g">${s.home_top_scorer}</span>`:''}
+                  ${s.away_top_scorer && s.away_top_scorer!=='—'?`<span class="reasoning-mini-tag p">${s.away_top_scorer}</span>`:''}
+                </div>
+              </div>
+            </div>` : ''}
+
+            ${hSq>0&&aSq>0?`<div class="reasoning-row">
+              <div class="reasoning-row-icon">👕</div>
+              <div class="reasoning-row-content">
+                <div class="reasoning-row-label">Kedalaman Skuad</div>
+                <div class="reasoning-mini-tags">
+                  <span class="reasoning-mini-tag p">${p.home.split(' ')[0]}: ${hSq} pemain</span>
+                  <span class="reasoning-mini-tag a">${p.away.split(' ')[0]}: ${aSq} pemain</span>
+                  ${hSq>aSq?`<span class="reasoning-mini-tag g">${p.home.split(' ')[0]} lebih dalam</span>`:hSq<aSq?`<span class="reasoning-mini-tag g">${p.away.split(' ')[0]} lebih dalam</span>`:'<span class="reasoning-mini-tag">Skuad seimbang</span>'}
+                </div>
+              </div>
+            </div>`:''}
+
+          </div>
+        </div>
 
       </div>
     </div>`;
