@@ -338,65 +338,6 @@ def build_reasoning(hn,an,hf,af,hs,as_,h2h,market,hxg,axg,gp,h_sc,a_sc,h_sq,a_sq
 # ── Save slip to Supabase ──────────────────────────────────────────────────
 @app.route("/api/slip/save", methods=["POST"])
 def save_slip():
-    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-        return jsonify({"error": "Supabase not configured"}), 500
-
-    body = request.get_json(force=True) or {}
-    slip_id = str(uuid.uuid4())[:8].upper()  # short ID e.g. "A1B2C3D4"
-
-    payload = {
-        "slip_id":   slip_id,
-        "data":      json.dumps(body.get("data", {})),
-        "picks":     json.dumps(body.get("picks", [])),
-        "created_at": datetime.utcnow().isoformat()
-    }
-
-    try:
-        r = requests.post(
-            f"{SUPABASE_URL}/rest/v1/parlay_slips",
-            headers=SUPABASE_HEADERS,
-            json=payload,
-            timeout=10
-        )
-        if r.status_code in (200, 201):
-            return jsonify({"slip_id": slip_id})
-        else:
-            return jsonify({"error": f"Supabase error: {r.status_code} {r.text[:200]}"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ── Load slip from Supabase ────────────────────────────────────────────────
-@app.route("/api/slip/<slip_id>")
-def load_slip(slip_id):
-    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-        return jsonify({"error": "Supabase not configured"}), 500
-    try:
-        r = requests.get(
-            f"{SUPABASE_URL}/rest/v1/parlay_slips?slip_id=eq.{slip_id.upper()}&select=*",
-            headers=SUPABASE_HEADERS,
-            timeout=10
-        )
-        rows = r.json()
-        if not rows:
-            return jsonify({"error": "Slip not found"}), 404
-        row = rows[0]
-        return jsonify({
-            "slip_id": row["slip_id"],
-            "data":    json.loads(row["data"]),
-            "picks":   json.loads(row["picks"]),
-            "created_at": row["created_at"]
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ── Slip viewer page ───────────────────────────────────────────────────────
-@app.route("/slip/<slip_id>")
-def slip_page(slip_id):
-    return render_template("slip.html", slip_id=slip_id.upper())
-
-# ── Save slip ─────────────────────────────────────────────────────────────
-@app.route("/api/slip/save", methods=["POST"])
-def save_slip():
     body    = request.get_json(force=True) or {}
     slip_id = str(uuid.uuid4())[:8].upper()
     payload = {
