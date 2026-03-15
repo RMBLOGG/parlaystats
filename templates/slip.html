@@ -105,7 +105,7 @@ let toastT;
 function showToast(msg){let el=document.getElementById('__toast');if(!el){el=document.createElement('div');el.id='__toast';el.className='toast';document.body.appendChild(el);}el.className='toast';el.textContent=msg;clearTimeout(toastT);toastT=setTimeout(()=>{el.classList.add('hide');setTimeout(()=>el.remove(),250);},2500);}
 function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>showToast('✅ Link disalin!')).catch(()=>{const i=document.querySelector('.copy-link-input');if(i){i.select();document.execCommand('copy');showToast('✅ Link disalin!');}});}
 function dots(str){return(str||'?????').split('').map(c=>{const cc=c==='W'?'W':c==='D'?'D':c==='L'?'L':'Q';return`<div class="fd-sm ${cc}">${c}</div>`;}).join('');}
-function fmtDate(iso){try{return new Date(iso).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return iso;}}
+function fmtDate(iso){try{return new Date(iso).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})+' WIB';}catch{return iso;}}
 
 async function loadSlip(){
   const wrap=document.getElementById('mainContent');
