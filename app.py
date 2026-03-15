@@ -1,7 +1,16 @@
 from flask import Flask, render_template, request, jsonify
-import requests, time, os, math, threading
+import requests, time, os, math, threading, json, uuid
 from datetime import datetime, timedelta
 from collections import deque
+
+SUPABASE_URL      = os.environ.get("SUPABASE_URL", "https://mafnnqttvkdgqqxczqyt.supabase.co")
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZm5ucXR0dmtkZ3FxeGN6cXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzQyMDEsImV4cCI6MjA4NzQ1MDIwMX0.YRh1oWVKnn4tyQNRbcPhlSyvr7V_1LseWN7VjcImb-Y")
+SUPABASE_HEADERS  = {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
 
 app = Flask(__name__)
 
@@ -256,7 +265,7 @@ def analyze_match(pick, hfd, afd, h2hd, std, scrd, hinf, ainf):
             "btts_prob":gp["btts_yes"],
             "home_win_prob":hwp,"draw_prob":drp,"away_win_prob":awp,
             "most_likely_score":gp["most_likely_score"],"top_scores":gp["top_scores"],
-            "home_squad":h_squad,"away_squad":a_squad,
+            "home_squad":h_squad,"away_squad":a_squad,"home_points":hs.get("points",0),"away_points":as_.get("points",0),
             "home_top_scorer":h_scorer_name or "—","away_top_scorer":a_scorer_name or "—",
         }
     }
@@ -343,6 +352,113 @@ def build_reasoning(hn,an,hf,af,hs,as_,h2h,market,hxg,axg,gp,h_sc,a_sc,h_sq,a_sq
     if a_sc: p.append(f"Top scorer {an}: {a_sc}.")
     if h_sq and a_sq: p.append(f"Skuad: {hn} {h_sq} pemain vs {an} {a_sq} pemain.")
     return " ".join(p)
+
+# ── Save slip to Supabase ──────────────────────────────────────────────────
+@app.route("/api/slip/save", methods=["POST"])
+def save_slip():
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        return jsonify({"error": "Supabase not configured"}), 500
+
+    body = request.get_json(force=True) or {}
+    slip_id = str(uuid.uuid4())[:8].upper()  # short ID e.g. "A1B2C3D4"
+
+    payload = {
+        "slip_id":   slip_id,
+        "data":      json.dumps(body.get("data", {})),
+        "picks":     json.dumps(body.get("picks", [])),
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+    try:
+        r = requests.post(
+            f"{SUPABASE_URL}/rest/v1/parlay_slips",
+            headers=SUPABASE_HEADERS,
+            json=payload,
+            timeout=10
+        )
+        if r.status_code in (200, 201):
+            return jsonify({"slip_id": slip_id})
+        else:
+            return jsonify({"error": f"Supabase error: {r.status_code} {r.text[:200]}"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ── Load slip from Supabase ────────────────────────────────────────────────
+@app.route("/api/slip/<slip_id>")
+def load_slip(slip_id):
+    if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+        return jsonify({"error": "Supabase not configured"}), 500
+    try:
+        r = requests.get(
+            f"{SUPABASE_URL}/rest/v1/parlay_slips?slip_id=eq.{slip_id.upper()}&select=*",
+            headers=SUPABASE_HEADERS,
+            timeout=10
+        )
+        rows = r.json()
+        if not rows:
+            return jsonify({"error": "Slip not found"}), 404
+        row = rows[0]
+        return jsonify({
+            "slip_id": row["slip_id"],
+            "data":    json.loads(row["data"]),
+            "picks":   json.loads(row["picks"]),
+            "created_at": row["created_at"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ── Slip viewer page ───────────────────────────────────────────────────────
+@app.route("/slip/<slip_id>")
+def slip_page(slip_id):
+    return render_template("slip.html", slip_id=slip_id.upper())
+
+# ── Save slip ─────────────────────────────────────────────────────────────
+@app.route("/api/slip/save", methods=["POST"])
+def save_slip():
+    body    = request.get_json(force=True) or {}
+    slip_id = str(uuid.uuid4())[:8].upper()
+    payload = {
+        "slip_id":    slip_id,
+        "data":       json.dumps(body.get("data", {})),
+        "picks":      json.dumps(body.get("picks", [])),
+        "created_at": datetime.utcnow().isoformat()
+    }
+    try:
+        r = requests.post(
+            f"{SUPABASE_URL}/rest/v1/parlay_slips",
+            headers=SUPABASE_HEADERS, json=payload, timeout=10
+        )
+        if r.status_code in (200, 201):
+            return jsonify({"slip_id": slip_id})
+        return jsonify({"error": f"Supabase: {r.status_code} {r.text[:200]}"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ── Load slip ──────────────────────────────────────────────────────────────
+@app.route("/api/slip/<slip_id>")
+def load_slip(slip_id):
+    try:
+        r = requests.get(
+            f"{SUPABASE_URL}/rest/v1/parlay_slips?slip_id=eq.{slip_id.upper()}&select=*",
+            headers=SUPABASE_HEADERS, timeout=10
+        )
+        rows = r.json()
+        if not rows:
+            return jsonify({"error": "Slip not found"}), 404
+        row = rows[0]
+        return jsonify({
+            "slip_id":    row["slip_id"],
+            "data":       json.loads(row["data"]),
+            "picks":      json.loads(row["picks"]),
+            "created_at": row["created_at"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ── Slip viewer page ───────────────────────────────────────────────────────
+@app.route("/slip/<slip_id>")
+def slip_page(slip_id):
+    return render_template("slip.html", slip_id=slip_id.upper())
 
 if __name__=="__main__":
     app.run(debug=True)
