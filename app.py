@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-import requests, time, os, math, threading, json, uuid
+import requests, time, os, math, json, uuid
 from datetime import datetime, timedelta
-from collections import deque
 
 SUPABASE_URL      = os.environ.get("SUPABASE_URL", "https://mafnnqttvkdgqqxczqyt.supabase.co")
 SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZm5ucXR0dmtkZ3FxeGN6cXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzQyMDEsImV4cCI6MjA4NzQ1MDIwMX0.YRh1oWVKnn4tyQNRbcPhlSyvr7V_1LseWN7VjcImb-Y")
@@ -26,37 +25,20 @@ def cache_get(k):
 def cache_set(k, d, ttl=300):
     _cache[k] = {"data": d, "expires": time.time() + ttl}
 
-# ── Rate limiter: max 9 req/min (free tier = 10/min) ──────────────────────
-_req_times  = deque()
-_rate_lock  = threading.Lock()
-RATE_LIMIT  = 9
-RATE_WINDOW = 62
-
+# ── Simple API fetch with retry on 429 ────────────────────────────────────
 def fd_get(path, ttl=300):
     cached = cache_get(path)
     if cached is not None:
         return cached
-
-    with _rate_lock:
-        now = time.time()
-        while _req_times and now - _req_times[0] > RATE_WINDOW:
-            _req_times.popleft()
-        if len(_req_times) >= RATE_LIMIT:
-            wait = RATE_WINDOW - (now - _req_times[0]) + 0.5
-            if wait > 0:
-                time.sleep(wait)
-            now = time.time()
-            while _req_times and now - _req_times[0] > RATE_WINDOW:
-                _req_times.popleft()
-        _req_times.append(time.time())
-
     try:
         r = requests.get(FD_BASE + path, headers=FD_HEADERS, timeout=15)
         if r.status_code == 429:
-            time.sleep(61)
+            time.sleep(62)
             r = requests.get(FD_BASE + path, headers=FD_HEADERS, timeout=15)
         if r.status_code == 403:
             return {"error": "API key invalid or expired"}
+        if not r.ok:
+            return {"error": f"API error {r.status_code}"}
         d = r.json()
         cache_set(path, d, ttl)
         return d
