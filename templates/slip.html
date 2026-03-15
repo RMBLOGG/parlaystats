@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slip Prediksi · ParlayStats</title>
+<meta name="theme-color" content="#080a10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080a10;--surface:#111520;--card:#181b28;--card2:#1e2235;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);--accent:#6c63ff;--accent2:#8b85ff;--green:#10d97e;--amber:#fbbf24;--red:#f87171;--text:#eef0f8;--text2:#7880a0;--text3:#3d4260}
+html{font-size:15px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.header{position:sticky;top:0;z-index:100;background:rgba(8,10,16,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-mark{width:28px;height:28px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 10px rgba(108,99,255,0.4)}
+.logo-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-0.3px}
+.logo-name span{color:var(--accent)}
+.share-btn{display:flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.15s}
+.share-btn:hover{background:#7c74ff}
+.wrap{max-width:480px;margin:0 auto;padding:16px 16px 40px}
+.state-box{text-align:center;padding:60px 20px}
+.spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 14px}
+.state-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.state-sub{font-size:13px;color:var(--text2)}
+.slip-wrap{animation:fadeUp 0.3s ease}
+.slip-meta{text-align:center;padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.slip-ref{font-size:11px;color:var(--text3);letter-spacing:0.5px;margin-bottom:2px}
+.slip-date{font-size:11px;color:var(--text3)}
+.copy-link-box{display:flex;gap:8px;margin-bottom:14px}
+.copy-link-input{flex:1;background:var(--card);border:1.5px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-link-btn{background:var(--card2);border:1.5px solid var(--border2);border-radius:10px;padding:9px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);transition:all 0.15s;white-space:nowrap}
+.copy-link-btn:hover{border-color:var(--accent);color:var(--accent)}
+.conf-box{background:rgba(108,99,255,0.08);border:1.5px solid rgba(108,99,255,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.conf-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.conf-val{font-size:40px;font-weight:800;font-family:'DM Mono',monospace;line-height:1}
+.conf-val.high{color:var(--green)}.conf-val.mid{color:var(--amber)}.conf-val.low{color:var(--red)}
+.risk-tag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:6px}
+.legs-tag{font-size:12px;font-weight:700;color:var(--accent);background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.25);border-radius:20px;padding:6px 14px}
+.picks-table{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.pick-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;animation:fadeUp 0.3s ease both}
+.pick-card-head{background:var(--card);padding:8px 12px;display:flex;align-items:center;justify-content:space-between}
+.pick-num{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1px}
+.pick-mkt{font-size:10px;font-weight:700;color:var(--accent2);background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:5px;padding:2px 8px}
+.pick-body{padding:10px 12px}
+.pick-teams{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px}
+.pick-team{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;text-align:center}
+.pick-team img{width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))}
+.pick-team-ph{width:36px;height:36px;background:var(--card2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3)}
+.pick-team-name{font-size:11px;font-weight:600;line-height:1.3}
+.pick-vs{font-size:11px;color:var(--text3);font-weight:600;flex-shrink:0}
+.pick-result-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:8px 12px;margin-bottom:8px}
+.pick-result-val{font-size:13px;font-weight:700;color:var(--accent2)}
+.pick-result-conf{font-family:'DM Mono',monospace;font-size:18px;font-weight:500}
+.pick-result-conf.high{color:var(--green)}.pick-result-conf.mid{color:var(--amber)}.pick-result-conf.low{color:var(--red)}
+.pick-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:8px}
+.pick-stat{background:var(--card);border-radius:8px;padding:6px 4px;text-align:center}
+.pick-stat-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--accent2);line-height:1}
+.pick-stat-lbl{font-size:9px;color:var(--text3);margin-top:2px;font-weight:600}
+.pick-form-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.pick-form-crest{width:14px;height:14px;object-fit:contain;flex-shrink:0}
+.pick-form-name{font-size:10px;color:var(--text2);font-weight:600;width:60px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.form-dots-sm{display:flex;gap:2px}
+.fd-sm{width:17px;height:17px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.fd-sm.W{background:rgba(16,217,126,0.15);color:var(--green);border:1px solid rgba(16,217,126,0.3)}
+.fd-sm.D{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
+.fd-sm.L{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+.fd-sm.Q{background:var(--card2);color:var(--text3);border:1px solid var(--border)}
+.pick-form-pos{font-size:10px;color:var(--text3);margin-left:2px;font-family:'DM Mono',monospace}
+.h2h-mini{margin-top:8px}
+.h2h-mini-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.5px;margin-bottom:4px;text-transform:uppercase}
+.h2h-mini-track{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;display:flex}
+.h2h-mini-home{height:100%;background:var(--accent)}
+.h2h-mini-draw{height:100%;background:var(--text3)}
+.h2h-mini-away{height:100%;background:var(--red)}
+.h2h-mini-nums{display:flex;justify-content:space-between;margin-top:3px}
+.h2h-mini-num{font-size:10px;font-family:'DM Mono',monospace;color:var(--text3)}
+.scorer-mini{display:flex;align-items:center;gap:6px;background:rgba(16,217,126,0.06);border:1px solid rgba(16,217,126,0.15);border-radius:8px;padding:5px 8px;margin-top:6px}
+.scorer-mini-name{font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scorer-mini-goals{font-size:11px;font-weight:700;color:var(--green);font-family:'DM Mono',monospace}
+.slip-footer{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.slip-footer-note{font-size:10px;color:var(--text3);line-height:1.6;flex:1}
+.slip-footer-brand{font-size:11px;font-weight:800;color:var(--accent);opacity:0.6;white-space:nowrap}
+.back-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:12px;padding:13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.15s;box-shadow:0 4px 16px rgba(108,99,255,0.3)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:999;background:var(--card2);color:var(--text);border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,0.5);border:1px solid var(--border2);white-space:nowrap;pointer-events:none}
+@keyframes tin{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+.toast{animation:tin 0.2s ease}.toast.hide{animation:tout 0.2s ease forwards}
+</style>
+</head>
+<body>
+<header class="header">
+  <a class="logo" href="/"><div class="logo-mark">⚽</div><div class="logo-name">Parlay<span>Stats</span></div></a>
+  <button class="share-btn" onclick="copyLink()">🔗 Share</button>
+</header>
+<div class="wrap"><div id="mainContent">
+  <div class="state-box"><div class="spinner"></div><div class="state-title">Memuat slip...</div><div class="state-sub">Mohon tunggu</div></div>
+</div></div>
+<script>
+const SLIP_ID = "{{ slip_id }}";
+let toastT;
+function showToast(msg){let el=document.getElementById('__toast');if(!el){el=document.createElement('div');el.id='__toast';el.className='toast';document.body.appendChild(el);}el.className='toast';el.textContent=msg;clearTimeout(toastT);toastT=setTimeout(()=>{el.classList.add('hide');setTimeout(()=>el.remove(),250);},2500);}
+function copyLink(){navigator.clipboard.writeText(window.location.href).then(()=>showToast('✅ Link disalin!')).catch(()=>{const i=document.querySelector('.copy-link-input');if(i){i.select();document.execCommand('copy');showToast('✅ Link disalin!');}});}
+function dots(str){return(str||'?????').split('').map(c=>{const cc=c==='W'?'W':c==='D'?'D':c==='L'?'L':'Q';return`<div class="fd-sm ${cc}">${c}</div>`;}).join('');}
+function fmtDate(iso){try{return new Date(iso).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return iso;}}
+
+async function loadSlip(){
+  const wrap=document.getElementById('mainContent');
+  try{
+    const r=await fetch(`/api/slip/${SLIP_ID}`);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    renderSlip(d);
+  }catch(e){
+    wrap.innerHTML=`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">❌</div><div class="state-title">Slip tidak ditemukan</div><div class="state-sub">${e.message}</div><a href="/" style="display:inline-block;margin-top:16px;color:var(--accent);font-weight:700;text-decoration:none">← Buat Prediksi Baru</a></div>`;
+  }
+}
+
+function renderSlip(d){
+  const wrap=document.getElementById('mainContent');
+  const data=d.data, picks=d.picks;
+  const conf=data.overall_confidence||0;
+  const cls=conf>=60?'high':conf>=40?'mid':'low';
+  const fc=conf>=60?'var(--green)':conf>=40?'var(--amber)':'var(--red)';
+  const risk=conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
+
+  const cards=(data.predictions||[]).map((p,i)=>{
+    const s=p.stats||{},gp=p.goal_probs||{};
+    const sel=picks.find(pk=>pk.home_name===p.home&&pk.away_name===p.away);
+    const hC=sel?.home_crest||'',aC=sel?.away_crest||'';
+    const pCls=p.confidence>=60?'high':p.confidence>=40?'mid':'low';
+    const h2hT=(s.h2h_home_wins||0)+(s.h2h_draws||0)+(s.h2h_away_wins||0);
+    const hwP=h2hT?Math.round((s.h2h_home_wins||0)/h2hT*100):33;
+    const drP=h2hT?Math.round((s.h2h_draws||0)/h2hT*100):34;
+    const awP=h2hT?100-hwP-drP:33;
+    return `<div class="pick-card" style="animation-delay:${i*0.07}s">
+      <div class="pick-card-head"><span class="pick-num">PICK ${i+1}</span><span class="pick-mkt">${p.market}</span></div>
+      <div class="pick-body">
+        <div class="pick-teams">
+          <div class="pick-team">${hC?`<img src="${hC}" onerror="this.outerHTML='<div class=\\'pick-team-ph\\'>${p.home.slice(0,3)}</div>'" alt="">`:`<div class="pick-team-ph">${p.home.slice(0,3)}</div>`}<span class="pick-team-name">${p.home}</span></div>
+          <div class="pick-vs">VS</div>
+          <div class="pick-team">${aC?`<img src="${aC}" onerror="this.outerHTML='<div class=\\'pick-team-ph\\'>${p.away.slice(0,3)}</div>'" alt="">`:`<div class="pick-team-ph">${p.away.slice(0,3)}</div>`}<span class="pick-team-name">${p.away}</span></div>
+        </div>
+        <div class="pick-result-row">
+          <div><div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.5px;margin-bottom:3px">PREDIKSI</div><div class="pick-result-val">${p.pick}</div></div>
+          <div class="pick-result-conf ${pCls}">${p.confidence}%</div>
+        </div>
+        <div class="pick-stats-grid">
+          <div class="pick-stat"><div class="pick-stat-val">${s.home_xg||0}</div><div class="pick-stat-lbl">${p.home.split(' ')[0]} xG</div></div>
+          <div class="pick-stat"><div class="pick-stat-val">${s.away_xg||0}</div><div class="pick-stat-lbl">${p.away.split(' ')[0]} xG</div></div>
+          <div class="pick-stat"><div class="pick-stat-val" style="color:var(--green)">${gp.over_2_5||0}%</div><div class="pick-stat-lbl">Over 2.5</div></div>
+          <div class="pick-stat"><div class="pick-stat-val" style="color:var(--amber)">${gp.btts_yes||0}%</div><div class="pick-stat-lbl">BTTS</div></div>
+        </div>
+        <div class="pick-form-row">${hC?`<img class="pick-form-crest" src="${hC}" onerror="this.remove()" alt="">`:''}
+          <span class="pick-form-name">${p.home.split(' ')[0]}</span><div class="form-dots-sm">${dots(s.home_form)}</div><span class="pick-form-pos">#${s.home_pos||'?'}</span></div>
+        <div class="pick-form-row">${aC?`<img class="pick-form-crest" src="${aC}" onerror="this.remove()" alt="">`:''}
+          <span class="pick-form-name">${p.away.split(' ')[0]}</span><div class="form-dots-sm">${dots(s.away_form)}</div><span class="pick-form-pos">#${s.away_pos||'?'}</span></div>
+        ${h2hT>0?`<div class="h2h-mini"><div class="h2h-mini-label">H2H · ${h2hT} laga</div>
+          <div class="h2h-mini-track"><div class="h2h-mini-home" style="width:${hwP}%"></div><div class="h2h-mini-draw" style="width:${drP}%"></div><div class="h2h-mini-away" style="width:${awP}%"></div></div>
+          <div class="h2h-mini-nums"><span class="h2h-mini-num" style="color:var(--accent)">${p.home.split(' ')[0]} ${s.h2h_home_wins||0}M</span><span class="h2h-mini-num">Draw ${s.h2h_draws||0}</span><span class="h2h-mini-num" style="color:var(--red)">${s.h2h_away_wins||0}M ${p.away.split(' ')[0]}</span></div></div>`:''}
+        ${s.home_top_scorer&&s.home_top_scorer!=='—'?`<div class="scorer-mini"><span>⭐</span><span class="scorer-mini-name">${s.home_top_scorer.split(' (')[0]} · ${p.home.split(' ')[0]}</span><span class="scorer-mini-goals">${(s.home_top_scorer.match(/\d+/)||['?'])[0]}G</span></div>`:''}
+        ${s.away_top_scorer&&s.away_top_scorer!=='—'?`<div class="scorer-mini"><span>⭐</span><span class="scorer-mini-name">${s.away_top_scorer.split(' (')[0]} · ${p.away.split(' ')[0]}</span><span class="scorer-mini-goals">${(s.away_top_scorer.match(/\d+/)||['?'])[0]}G</span></div>`:''}
+      </div></div>`;
+  }).join('');
+
+  wrap.innerHTML=`<div class="slip-wrap">
+    <div class="slip-meta"><div class="slip-ref">Ref: ${d.slip_id}</div><div class="slip-date">${fmtDate(d.created_at)}</div></div>
+    <div class="copy-link-box"><input class="copy-link-input" value="${window.location.href}" readonly onclick="this.select()"><button class="copy-link-btn" onclick="copyLink()">Salin</button></div>
+    <div class="conf-box">
+      <div><div class="conf-label">Parlay Confidence</div><div class="conf-val ${cls}">${conf}%</div>
+      <span class="risk-tag" style="background:${fc}20;color:${fc};border:1px solid ${fc}40">${risk}</span></div>
+      <div class="legs-tag">${data.legs} Legs</div>
+    </div>
+    <div class="picks-table">${cards}</div>
+    <div class="slip-footer"><div class="slip-footer-note">Prediksi berbasis statistik & model Poisson.<br>Bukan jaminan — gunakan sebagai referensi saja.</div><div class="slip-footer-brand">ParlayStats</div></div>
+    <a href="/" class="back-btn">⚽ Buat Prediksi Baru</a>
+  </div>`;
+}
+
+loadSlip();
+</script>
+</body>
+</html>

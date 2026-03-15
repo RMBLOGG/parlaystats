@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ParlayStats — Football Predictor</title>
 <meta name="theme-color" content="#0a0b10">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -347,11 +346,6 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
 .reasoning-mini-tag.p { background:rgba(108,99,255,0.1); color:var(--accent2); border-color:rgba(108,99,255,0.25); }
 
 
-/* ── Export Slip ── */
-.export-btn { width:100%; background:linear-gradient(135deg,#1a1f35,#232840); border:1.5px solid var(--border2); border-radius:12px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; color:var(--text); transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; }
-.export-btn:hover { border-color:var(--accent); color:var(--accent); }
-.export-btn:active { transform:scale(0.98); }
-
 /* SLIP TEMPLATE (hidden, for screenshot) */
 #slipTemplate { position:fixed; left:-9999px; top:0; width:400px; background:#0f1117; font-family:'Plus Jakarta Sans',sans-serif; padding:0; z-index:-1; }
 .slip-wrap { background:#0f1117; padding:20px; min-width:400px; }
@@ -391,6 +385,12 @@ body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:v
 .slip-xg-box { flex:1; background:rgba(108,99,255,0.06); border-radius:6px; padding:5px 8px; text-align:center; border:1px solid rgba(108,99,255,0.12); }
 .slip-xg-val { font-size:13px; font-weight:700; color:#8b85ff; font-family:monospace; }
 .slip-xg-lbl { font-size:9px; color:#5a6080; margin-top:1px; }
+
+
+/* ── Export Slip ── */
+.export-btn { width:100%; background:linear-gradient(135deg,rgba(108,99,255,0.12),rgba(108,99,255,0.06)); border:1.5px solid rgba(108,99,255,0.3); border-radius:12px; padding:12px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:700; cursor:pointer; color:var(--accent2); transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; }
+.export-btn:hover { background:rgba(108,99,255,0.18); border-color:rgba(108,99,255,0.5); }
+.export-btn:active { transform:scale(0.98); }
 
 </style>
 </head>
@@ -964,15 +964,8 @@ function renderResult(data, picks) {
     </div>`;
   }).join('');
 
-  // Store for export
   window._lastResult = data;
   window._lastPicks  = picks;
-  // Build slip content
-  setTimeout(() => {
-    const slipEl = document.getElementById('slipContent');
-    if (slipEl) slipEl.innerHTML = buildSlipHTML(data, picks);
-  }, 200);
-
   wrap.innerHTML = `<div class="result-page">
     <div class="conf-hero">
       <div class="conf-label">Overall Parlay Confidence</div>
@@ -986,7 +979,7 @@ function renderResult(data, picks) {
     </div>
     <div class="pred-cards">${cards}</div>
     <button class="btn-regen" onclick="runPredict()">🔄 Analisis Ulang</button>
-    <button class="export-btn" id="exportBtn" onclick="exportSlip()">📸 Export sebagai Gambar</button>
+    <button class="export-btn" id="exportBtn" onclick="openSlip()">🧾 Lihat Slip Prediksi</button>
   </div>`;
 
   setTimeout(() => {
@@ -1007,115 +1000,186 @@ function toggleReasoning(el) {
 document.getElementById('dateInp').value = new Date().toISOString().split('T')[0];
 </script>
 
-<!-- SLIP TEMPLATE -->
-<div id="slipTemplate">
-  <div class="slip-wrap" id="slipContent"></div>
-</div>
-
 <script>
-function buildSlipHTML(data, picks) {
-  const conf = data.overall_confidence || 0;
-  const cls  = conf>=60?'high':conf>=40?'mid':'low';
-  const risk = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
-  const riskCls = conf>=60?'g':conf>=40?'a':'r';
-  const now  = new Date();
-  const dateStr = now.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
-                  now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
-  const refNo = 'PS' + Date.now().toString().slice(-10);
 
-  const picksHTML = (data.predictions||[]).map((p,i) => {
-    const s  = p.stats||{};
-    const gp = p.goal_probs||{};
-    const selPick = picks.find(pk=>pk.home_name===p.home&&pk.away_name===p.away);
-    const hCrest  = selPick?.home_crest||'';
-    const aCrest  = selPick?.away_crest||'';
-    const pCls    = p.confidence>=60?'#10d97e':p.confidence>=40?'#fbbf24':'#f87171';
-    return `<div class="slip-pick-row">
-      <div class="slip-pick-num">PICK ${i+1} · ${p.market}</div>
-      <div class="slip-pick-match">
-        ${hCrest?`<img src="${hCrest}" onerror="this.remove()" alt="">`:''}
-        ${p.home} vs ${p.away}
-        ${aCrest?`<img src="${aCrest}" onerror="this.remove()" alt="">`:''}
-      </div>
-      <div class="slip-pick-details">
-        <span class="slip-pick-type">Form: ${s.home_form||'?????'} | ${s.away_form||'?????'}</span>
-        <div class="slip-pick-result">
-          <span class="slip-pick-val">${p.pick}</span>
-          <span class="slip-pick-conf" style="color:${pCls}">${p.confidence}%</span>
-        </div>
-      </div>
-      <div class="slip-xg-row">
-        <div class="slip-xg-box"><div class="slip-xg-val">${s.home_xg||0}</div><div class="slip-xg-lbl">${p.home.split(' ')[0]} xG</div></div>
-        <div class="slip-xg-box"><div class="slip-xg-val">${s.away_xg||0}</div><div class="slip-xg-lbl">${p.away.split(' ')[0]} xG</div></div>
-        <div class="slip-xg-box"><div class="slip-xg-val">${gp.over_2_5||0}%</div><div class="slip-xg-lbl">Over 2.5</div></div>
-        <div class="slip-xg-box"><div class="slip-xg-val">${gp.btts_yes||0}%</div><div class="slip-xg-lbl">BTTS</div></div>
-      </div>
-      <div class="slip-pick-stats">
-        ${s.home_pos!==99?`<span class="slip-stat-tag">#${s.home_pos} ${p.home.split(' ')[0]}</span>`:''}
-        ${s.away_pos!==99?`<span class="slip-stat-tag">#${s.away_pos} ${p.away.split(' ')[0]}</span>`:''}
-        ${s.h2h_home_wins||s.h2h_away_wins?`<span class="slip-stat-tag">H2H: ${s.h2h_home_wins||0}M-${s.h2h_draws||0}S-${s.h2h_away_wins||0}M</span>`:''}
-        ${s.home_top_scorer&&s.home_top_scorer!=='—'?`<span class="slip-stat-tag g">⭐ ${s.home_top_scorer}</span>`:''}
-        ${s.away_top_scorer&&s.away_top_scorer!=='—'?`<span class="slip-stat-tag g">⭐ ${s.away_top_scorer}</span>`:''}
-        <span class="slip-stat-tag">Skor: ${gp.most_likely_score||'?-?'}</span>
-      </div>
-    </div>`;
-  }).join('');
 
-  return `
-    <div class="slip-header">
-      <div class="slip-logo">
-        <div class="slip-logo-mark">⚽</div>
-        <div class="slip-logo-text">Parlay<span>Stats</span></div>
-      </div>
-      <div class="slip-ref">Ref: ${refNo} · ${dateStr}</div>
-    </div>
-    <div class="slip-conf-row">
-      <div>
-        <div class="slip-conf-label">PARLAY CONFIDENCE</div>
-        <div style="margin-top:2px"><span class="slip-risk ${riskCls}">${risk}</span></div>
-      </div>
-      <div class="slip-conf-val ${cls}">${conf}%</div>
-    </div>
-    <div class="slip-picks">${picksHTML}</div>
-    <div class="slip-footer">
-      <div class="slip-footer-note">Prediksi berbasis statistik & model Poisson.<br>Bukan jaminan — gunakan sebagai referensi.</div>
-      <div class="slip-footer-brand">ParlayStats</div>
-    </div>`;
-}
+async function openSlip() {
+  const data  = window._lastResult;
+  const picks = window._lastPicks;
+  if (!data || !picks) { showToast('Analisis dulu ya!'); return; }
 
-async function exportSlip() {
   const btn = document.getElementById('exportBtn');
-  if (!btn) return;
-  const origText = btn.innerHTML;
-  btn.innerHTML = '⏳ Generating...';
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Menyimpan...';
   btn.disabled = true;
 
   try {
-    const el = document.getElementById('slipContent');
-    el.style.display = 'block';
-
-    await new Promise(r => setTimeout(r, 300));
-
-    const canvas = await html2canvas(document.getElementById('slipTemplate'), {
-      backgroundColor: '#0f1117',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      width: 400,
+    const r = await fetch('/api/slip/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ data, picks })
     });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
 
-    const link = document.createElement('a');
-    link.download = `ParlayStats_${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    showToast('✅ Slip tersimpan!');
+    const slipUrl = `${window.location.origin}/slip/${d.slip_id}`;
+
+    // Copy to clipboard
+    try { await navigator.clipboard.writeText(slipUrl); } catch {}
+
+    // Show share modal
+    showSlipModal(slipUrl, d.slip_id);
   } catch(e) {
-    showToast('❌ Gagal export: ' + e.message);
+    showToast('❌ Gagal: ' + e.message);
   } finally {
-    btn.innerHTML = origText;
+    btn.innerHTML = orig;
     btn.disabled = false;
   }
+}
+
+function showSlipModal(url, id) {
+  let modal = document.getElementById('slipModal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'slipModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px)';
+  modal.innerHTML = `<div style="background:var(--surface);border:1.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;animation:slideUp 0.3s ease">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px">🔗 Slip Siap Dibagikan!</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">ID: <b style="color:var(--accent)">${id}</b> · Link sudah disalin otomatis</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input id="slipUrlInput" value="${url}" readonly onclick="this.select()" style="flex:1;background:var(--card);border:1.5px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+      <button onclick="navigator.clipboard.writeText('${url}').then(()=>showToast('✅ Disalin!'))" style="background:var(--card2);border:1.5px solid var(--border2);border-radius:10px;padding:9px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);white-space:nowrap">Salin</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="window.open('${url}','_blank')" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Buka Slip</button>
+      <button onclick="if(navigator.share)navigator.share({title:'Prediksi Parlay',url:'${url}'});else showToast('Share tidak tersedia')" style="flex:1;background:var(--card2);color:var(--text);border:1.5px solid var(--border2);border-radius:10px;padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">Share ke WA</button>
+    </div>
+    <button onclick="document.getElementById('slipModal').remove()" style="width:100%;margin-top:8px;background:none;border:none;color:var(--text3);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;cursor:pointer;padding:8px">Tutup</button>
+  </div>`;
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _old_openSlip() {
+  const data  = window._lastResult;
+  const picks = window._lastPicks;
+  if (!data || !picks) { showToast('Analisis dulu ya!'); return; }
+
+  const conf    = data.overall_confidence || 0;
+  const cls     = conf>=60?'#10d97e':conf>=40?'#fbbf24':'#f87171';
+  const risk    = conf>=60?'Risiko Rendah':conf>=40?'Risiko Sedang':'Risiko Tinggi';
+  const now     = new Date();
+  const dateStr = now.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const refNo   = 'PS' + Date.now().toString().slice(-10);
+
+  const rows = (data.predictions||[]).map((p,i) => {
+    const s  = p.stats  || {};
+    const gp = p.goal_probs || {};
+    const sel = picks.find(pk=>pk.home_name===p.home&&pk.away_name===p.away);
+    const hCrest = sel?.home_crest||'';
+    const aCrest = sel?.away_crest||'';
+    const pColor = p.confidence>=60?'#10d97e':p.confidence>=40?'#fbbf24':'#f87171';
+    return `<tr>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.05);color:#7880a0;font-weight:700;font-size:13px;vertical-align:top;width:28px">${i+1}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:top">
+        <div style="font-size:10px;font-weight:700;color:#5a6080;letter-spacing:0.5px;margin-bottom:4px">${p.market}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          ${hCrest?`<img src="${hCrest}" style="width:16px;height:16px;object-fit:contain" onerror="this.remove()">`:''}
+          <span style="font-size:13px;font-weight:700;color:#eef0f8">${p.home}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          ${aCrest?`<img src="${aCrest}" style="width:16px;height:16px;object-fit:contain" onerror="this.remove()">`:''}
+          <span style="font-size:13px;font-weight:700;color:#eef0f8">${p.away}</span>
+        </div>
+        <div style="font-size:10px;color:#5a6080;margin-bottom:3px">Form: <span style="font-family:monospace">${s.home_form||'?????'}</span> | <span style="font-family:monospace">${s.away_form||'?????'}</span></div>
+        <div style="font-size:10px;color:#5a6080;margin-bottom:3px">xG: ${s.home_xg||0} + ${s.away_xg||0} = ${s.total_xg||0} | Top score: ${gp.most_likely_score||'?'}</div>
+        <div style="font-size:10px;color:#5a6080;margin-bottom:3px">Over 2.5: ${gp.over_2_5||0}% | BTTS: ${gp.btts_yes||0}%</div>
+        ${s.home_top_scorer&&s.home_top_scorer!=='—'?`<div style="font-size:10px;color:#10d97e">⭐ ${s.home_top_scorer} · ${p.home.split(' ')[0]}</div>`:''}
+        ${s.away_top_scorer&&s.away_top_scorer!=='—'?`<div style="font-size:10px;color:#10d97e">⭐ ${s.away_top_scorer} · ${p.away.split(' ')[0]}</div>`:''}
+      </td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:top;text-align:right;white-space:nowrap">
+        <div style="display:inline-block;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.25);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;color:#8b85ff;margin-bottom:4px">${p.pick}</div>
+        <div style="font-size:16px;font-weight:800;font-family:monospace;color:${pColor}">${p.confidence}%</div>
+        <div style="font-size:10px;color:#5a6080;margin-top:2px">#${s.home_pos||'?'} vs #${s.away_pos||'?'}</div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slip Prediksi · ParlayStats</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080a10;color:#eef0f8;font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;padding:20px 16px 40px}
+.wrap{max-width:480px;margin:0 auto}
+.header{text-align:center;padding:20px 0 16px;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:16px}
+.logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.logo-mark{width:32px;height:32px;background:#6c63ff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-name{font-size:18px;font-weight:800;letter-spacing:-0.3px}
+.logo-name span{color:#6c63ff}
+.meta{font-size:11px;color:#3d4260;letter-spacing:0.5px;margin-top:4px}
+.conf-box{background:rgba(108,99,255,0.08);border:1.5px solid rgba(108,99,255,0.2);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.conf-left .label{font-size:10px;font-weight:700;color:#5a6080;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.conf-val{font-size:36px;font-weight:800;font-family:'DM Mono',monospace;line-height:1}
+.risk-tag{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:6px}
+.legs-tag{font-size:12px;font-weight:700;color:#6c63ff;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.25);border-radius:20px;padding:6px 14px}
+table{width:100%;border-collapse:collapse;background:#111520;border-radius:14px;overflow:hidden;margin-bottom:14px;border:1.5px solid rgba(255,255,255,0.06)}
+.footer{background:#0d0f18;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.footer-note{font-size:10px;color:#3d4260;line-height:1.6;flex:1}
+.footer-brand{font-size:12px;font-weight:800;color:#6c63ff;opacity:0.6;white-space:nowrap}
+.back-btn{display:block;width:100%;background:#6c63ff;color:#fff;border:none;border-radius:12px;padding:13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-align:center;margin-top:14px;text-decoration:none}
+.back-btn:hover{background:#7c74ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-mark">⚽</div>
+      <div class="logo-name">Parlay<span>Stats</span></div>
+    </div>
+    <div class="meta">Ref: ${refNo} &nbsp;·&nbsp; ${dateStr}</div>
+  </div>
+
+  <div class="conf-box">
+    <div class="conf-left">
+      <div class="label">Parlay Confidence</div>
+      <div class="conf-val" style="color:${cls}">${conf}%</div>
+      <span class="risk-tag" style="background:${cls}20;color:${cls};border:1px solid ${cls}40">${risk}</span>
+    </div>
+    <div class="legs-tag">${data.legs} Legs</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr style="background:rgba(255,255,255,0.03)">
+        <th style="padding:8px;font-size:10px;font-weight:700;color:#3d4260;letter-spacing:1px;text-align:left">#</th>
+        <th style="padding:8px;font-size:10px;font-weight:700;color:#3d4260;letter-spacing:1px;text-align:left">PERTANDINGAN</th>
+        <th style="padding:8px;font-size:10px;font-weight:700;color:#3d4260;letter-spacing:1px;text-align:right">PREDIKSI</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+
+  <div class="footer">
+    <div class="footer-note">Prediksi berbasis statistik & model Poisson.<br>Bukan jaminan — gunakan sebagai referensi saja.</div>
+    <div class="footer-brand">ParlayStats</div>
+  </div>
+
+  <button class="back-btn" onclick="window.close()">← Kembali</button>
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank');
 }
 </script>
 </body>
